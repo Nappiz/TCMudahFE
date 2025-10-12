@@ -57,7 +57,6 @@ export default function EnrollmentsCMSPage() {
         api<Order[]>("/admin/orders?status=approved"),
       ]);
 
-      // hanya tampilkan peserta yg punya order approved
       const approved = new Set(orders.map((o) => o.user_id));
       setApprovedUserIds(approved);
 
@@ -65,7 +64,6 @@ export default function EnrollmentsCMSPage() {
       setUsers(onlyApprovedParticipants);
       setClasses(c);
 
-      // auto-select pertama (jika ada)
       if (!selected && onlyApprovedParticipants.length > 0) {
         setSelected(onlyApprovedParticipants[0].id);
       }
@@ -82,7 +80,6 @@ export default function EnrollmentsCMSPage() {
     loadAll();
   }, []);
 
-  // load enrollment user terpilih
   useEffect(() => {
     if (!selected) return;
     (async () => {
@@ -146,7 +143,7 @@ export default function EnrollmentsCMSPage() {
             <div className="text-sm text-white/60">Kelola akses kelas peserta</div>
             <h1 className="text-xl font-bold text-white">Enrollments</h1>
             <p className="text-white/70 text-sm">
-              Daftar di kiri hanya menampilkan peserta dengan order <b>approved</b>. Centang kelas aktif di panel kanan.
+              Daftar menampilkan peserta dengan order <b>approved</b>.
             </p>
           </div>
           <div className="flex items-center gap-2">

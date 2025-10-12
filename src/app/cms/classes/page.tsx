@@ -226,7 +226,7 @@ export default function ClassesCMSPage() {
           <div>
             <h1 className="text-xl font-bold text-white">Kelas</h1>
             <p className="text-sm text-white/70">
-              Kelola katalog kelas. Mentor hanya dapat melihat; Admin & Superadmin dapat menambah/mengubah/menghapus.
+              Kelola katalog kelas.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -249,12 +249,10 @@ export default function ClassesCMSPage() {
         </div>
       </div>
 
-      {/* Status */}
       <div className="rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm text-white/70">
         {filtered.length} item • {mentors.length} mentor • {curriculum.length} kurikulum
       </div>
 
-      {/* List (desktop) */}
       <div className="hidden overflow-hidden rounded-2xl border border-white/10 bg-white/5 sm:block">
         <table className="min-w-full text-sm">
           <thead className="bg-white/5 text-white/60">
@@ -328,7 +326,6 @@ export default function ClassesCMSPage() {
         </table>
       </div>
 
-      {/* Mobile cards */}
       <div className="grid gap-3 sm:hidden">
         {filtered.map((it) => (
           <div key={it.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
@@ -375,7 +372,6 @@ export default function ClassesCMSPage() {
         ))}
       </div>
 
-      {/* Modal Add/Edit */}
       {modalOpen && (
         <div className="fixed inset-0 z-[70]">
           <div className="absolute inset-0 bg-black/60" onClick={() => !saving && setModalOpen(false)} />
@@ -409,7 +405,6 @@ export default function ClassesCMSPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* MULTI MENTOR */}
                 <div className="sm:col-span-1">
                   <label className="text-xs text-white/60">Mentor</label>
                   <div className="mt-1 rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2">
@@ -445,7 +440,6 @@ export default function ClassesCMSPage() {
                   </div>
                 </div>
 
-                {/* KURIKULUM */}
                 <div className="sm:col-span-2">
                   <label className="text-xs text-white/60">Kurikulum Terkait</label>
                   <div className="mt-1 rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2">

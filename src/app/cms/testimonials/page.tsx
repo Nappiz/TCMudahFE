@@ -176,7 +176,7 @@ export default function TestimonialsCMSPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-xl font-bold text-white">Testimonials</h1>
-            <p className="text-sm text-white/70">Kelola testimoni untuk ditampilkan di landing page. Mentor hanya dapat melihat.</p>
+            <p className="text-sm text-white/70">Kelola testimoni untuk ditampilkan di landing page.</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="relative w-64 max-w-[60vw]">
@@ -338,7 +338,6 @@ export default function TestimonialsCMSPage() {
         </div>
       )}
 
-      {/* ====== MODALS ====== */}
       <Modal
         open={successModal.open}
         onClose={successModal.onClose}

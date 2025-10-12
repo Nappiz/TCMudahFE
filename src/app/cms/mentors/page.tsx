@@ -171,9 +171,6 @@ export default function MentorsCMS() {
             <h2 className="text-lg font-semibold text-white">Mentor</h2>
             <p className="text-sm text-white/60">
               Kelola daftar mentor.{" "}
-              {isReadonly
-                ? "Mode read-only untuk role mentor."
-                : "Admin & Superadmin dapat menambah/mengubah/menghapus."}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -338,9 +335,6 @@ export default function MentorsCMS() {
         </div>
       </div>
 
-      {/* ====== MODALS ====== */}
-
-      {/* Success */}
       <Modal
         open={successModal.open}
         onClose={successModal.onClose}
@@ -351,7 +345,6 @@ export default function MentorsCMS() {
         {successMsg}
       </Modal>
 
-      {/* Error */}
       <Modal
         open={errorModal.open}
         onClose={errorModal.onClose}
@@ -362,7 +355,6 @@ export default function MentorsCMS() {
         {errorMsg}
       </Modal>
 
-      {/* Confirm Delete */}
       <ConfirmModal
         open={confirmModal.open}
         onClose={() => {
