@@ -9,7 +9,7 @@ import type {
   ClassMaterial,
 } from "@/types/catalog";
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+export const API_BASE = "/api";
 
 /** Low-level JSON helper used by some auth calls */
 async function json<T>(res: Response): Promise<T> {
