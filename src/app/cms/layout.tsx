@@ -73,6 +73,7 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
     { href : "/cms/orders", label: "Orders", icon: BadgeCheck },
     { href: "/cms/enrollments", label: "Enrollments", icon: FileBox },
     { href: "/cms/materials", label: "Materials", icon: FileVideo },
+    { href: "/cms/feedback", label: "Feedbacks", icon: FileVideo },
   ];
 
   return (

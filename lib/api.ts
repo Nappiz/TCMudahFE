@@ -26,7 +26,6 @@ async function json<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-/** Generic GET helper (includes credentials) */
 export async function api<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, { credentials: "include" });
   if (!res.ok) {
@@ -40,7 +39,6 @@ export async function api<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-/** Generic POST JSON helper (includes credentials) */
 export async function postJSON<T>(path: string, body: any): Promise<T> {
   const r = await fetch(`${API_BASE}${path}`, {
     method: "POST",
@@ -52,7 +50,6 @@ export async function postJSON<T>(path: string, body: any): Promise<T> {
   return r.json() as Promise<T>;
 }
 
-/** Upload file (payment proof) -> returns public URL */
 export async function uploadFile(file: File): Promise<string> {
   const fd = new FormData();
   fd.append("file", file);
@@ -66,7 +63,6 @@ export async function uploadFile(file: File): Promise<string> {
   return j.url as string;
 }
 
-/** Fetch public catalog for daftar-kelas */
 export async function fetchCatalog(): Promise<Catalog> {
   const [mentors, curriculum, classes] = await Promise.all([
     api<Mentor[]>("/mentors"),
@@ -76,7 +72,6 @@ export async function fetchCatalog(): Promise<Catalog> {
   return { mentors, curriculum, classes };
 }
 
-/** Fetch checkout info (bank, account, holder, group link) */
 export async function fetchCheckoutInfo(): Promise<CheckoutInfo> {
   return api<CheckoutInfo>("/checkout/info");
 }
@@ -138,7 +133,6 @@ export async function apiMyEnrollments(): Promise<Enrollment[]> {
   return json<Enrollment[]>(res);
 }
 
-/** PESERTA: ambil materi visible untuk kelas tertentu */
 export async function apiMaterialsByClass(classId: string): Promise<ClassMaterial[]> {
   const res = await fetch(`${API_BASE}/materials?class_id=${encodeURIComponent(classId)}`, {
     credentials: "include",
@@ -146,7 +140,6 @@ export async function apiMaterialsByClass(classId: string): Promise<ClassMateria
   return json<ClassMaterial[]>(res);
 }
 
-/** ADMIN / MENTOR */
 export async function apiSetUserEnrollments(payload: { user_id: string; class_ids: string[] }) {
   const res = await fetch(`${API_BASE}/admin/enrollments/set`, {
     method: "POST",
@@ -157,7 +150,6 @@ export async function apiSetUserEnrollments(payload: { user_id: string; class_id
   return json<any>(res);
 }
 
-/** ADMIN: list materials by class */
 export async function apiAdminMaterialsByClass(classId: string): Promise<ClassMaterial[]> {
   const res = await fetch(`${API_BASE}/admin/materials?class_id=${encodeURIComponent(classId)}`, {
     credentials: "include",
@@ -165,7 +157,6 @@ export async function apiAdminMaterialsByClass(classId: string): Promise<ClassMa
   return json<ClassMaterial[]>(res);
 }
 
-/** ADMIN: create material (link Drive/YouTube/Slides) */
 export async function apiCreateMaterial(payload: {
   class_id: string;
   title: string;
@@ -182,7 +173,6 @@ export async function apiCreateMaterial(payload: {
   return json<any>(res);
 }
 
-/** ADMIN: update material (title/visible) */
 export async function apiUpdateMaterial(id: string, patch: { title?: string; visible?: boolean }) {
   const res = await fetch(`${API_BASE}/admin/materials/${encodeURIComponent(id)}`, {
     method: "PATCH",
@@ -193,7 +183,6 @@ export async function apiUpdateMaterial(id: string, patch: { title?: string; vis
   return json<any>(res);
 }
 
-/** ADMIN: delete material */
 export async function apiDeleteMaterial(id: string) {
   const res = await fetch(`${API_BASE}/admin/materials/${encodeURIComponent(id)}`, {
     method: "DELETE",
@@ -202,10 +191,48 @@ export async function apiDeleteMaterial(id: string) {
   return json<{ ok: boolean }>(res);
 }
 
-/** ADMIN: get 1 class by id (dipakai CMS materials header) */
 export async function apiAdminClassById(id: string): Promise<ClassItem> {
   const res = await fetch(`${API_BASE}/admin/classes/${encodeURIComponent(id)}`, {
     credentials: "include",
   });
   return json<ClassItem>(res);
+}
+
+// ==== FEEDBACK (anon) ====
+
+export async function apiCreateOrUpdateFeedback(payload: {
+  class_id: string;
+  text: string;
+  rating?: number | null;
+}) {
+  const r = await fetch(`${API_BASE}/feedback`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!r.ok) throw new Error((await r.text()) || r.statusText);
+  return r.json();
+}
+
+export async function apiMyFeedbacks() {
+  const r = await fetch(`${API_BASE}/feedback/me`, { credentials: "include" });
+  if (!r.ok) throw new Error((await r.text()) || r.statusText);
+  return r.json();
+}
+
+export async function apiAdminFeedbackList(classId?: string) {
+  const url = classId ? `/admin/feedback?class_id=${encodeURIComponent(classId)}` : `/admin/feedback`;
+  const r = await fetch(`${API_BASE}${url}`, { credentials: "include" });
+  if (!r.ok) throw new Error((await r.text()) || r.statusText);
+  return r.json();
+}
+
+export async function apiAdminFeedbackDelete(id: string) {
+  const r = await fetch(`${API_BASE}/admin/feedback/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!r.ok) throw new Error((await r.text()) || r.statusText);
+  return r.json();
 }
