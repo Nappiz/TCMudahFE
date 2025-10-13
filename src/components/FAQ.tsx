@@ -47,7 +47,7 @@ export default function FAQ() {
         <SectionHeader
           eyebrow="FAQ"
           title="Pertanyaan yang Sering Diajukan"
-          description="Kalau masih ada yang ingin ditanyakan, hubungi kami via WhatsApp/Instagram ya."
+          description="Kalau masih ada yang ingin ditanyakan, hubungi kami via WhatsApp ya."
           align="center"
         />
 
@@ -102,7 +102,7 @@ export default function FAQ() {
         <div className="mx-auto mt-8 max-w-3xl text-center text-sm text-white/60">
           Tidak menemukan jawaban?{" "}
           <a
-            href="#kontak"
+            href="https://wa.me/6281519291757"
             className="text-white underline underline-offset-4 hover:no-underline"
           >
             Hubungi kami

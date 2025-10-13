@@ -78,17 +78,17 @@ export default function Footer() {
                 <FooterTitle>Kontak</FooterTitle>
                 <ul className="mt-3 space-y-2 text-sm text-white/70">
                 <li>
-                    <a href="mailto:hello@tcmudah.id" className="hover:text-white">
-                    hello@tcmudah.id
+                    <a href="mailto:Badruzzamannafiz@gmail.com" className="hover:text-white">
+                    Email
                     </a>
                 </li>
                 <li>
-                    <a href="https://wa.me/6281234567890" target="_blank" rel="noreferrer" className="hover:text-white">
-                    WhatsApp CS
+                    <a href="https://wa.me/6281519291757" target="_blank" rel="noreferrer" className="hover:text-white">
+                    WhatsApp
                     </a>
                 </li>
                 <li>
-                    <a href="https://www.instagram.com/" target="_blank" rel="noreferrer" className="hover:text-white">
+                    <a href="https://www.instagram.com/tcmudah" target="_blank" rel="noreferrer" className="hover:text-white">
                     Instagram
                     </a>
                 </li>

@@ -32,13 +32,13 @@ export default function ClosingCTA() {
                     <Link href="/daftar-kelas">
                     <Button variant="secondary" size="lg">Daftar Sekarang</Button>
                     </Link>
-                    <Link href="#kontak">
+                    <a href={"https://wa.me/6281519291757"} target="_blank" rel="noreferrer">
                     <Button variant="primary" size="lg">Kontak Kami</Button>
-                    </Link>
+                    </a>
                 </div>
 
                 <dl className="mt-6 grid grid-cols-3 gap-4 max-w-md">
-                    <Stat label="Peserta" value="100+" />
+                    <Stat label="Peserta" value="15+" />
                     <Stat label="Modul" value="12" />
                     <Stat label="Kepuasan" value="90%+" />
                 </dl>
@@ -65,7 +65,7 @@ export default function ClosingCTA() {
                 <div className="mt-5 grid grid-cols-3 gap-3 text-center">
                     {[
                     { k: "Platform", v: "Online" },
-                    { k: "Durasi", v: "8–12 pekan" },
+                    { k: "Durasi", v: "6 pekan" },
                     { k: "Bahasa", v: "Indonesia" },
                     ].map((x) => (
                     <div key={x.k} className="rounded-xl border border-white/10 bg-white/5 px-3 py-3">

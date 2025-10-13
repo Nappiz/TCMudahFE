@@ -74,7 +74,7 @@ export default function Hero() {
                 <Link href="/daftar-kelas">
                     <Button variant="secondary">Daftar Sekarang</Button>
                 </Link>
-                <a href={`https://youtu.be/${videoId}`} target="_blank" rel="noreferrer">
+                <a href={`https://drive.google.com/file/d/1iUxvc9C-_8lNf8aIx3FZN_wFjXfsbnox/view?usp=sharing`} target="_blank" rel="noreferrer">
                     <Button variant="primary">Guidebook</Button>
                 </a>
                 </div>
