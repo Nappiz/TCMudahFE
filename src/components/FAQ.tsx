@@ -33,7 +33,7 @@ const faqs: Item[] = [
   },
   {
     q: "Kok saya tidak dapat login?",
-    a: "Untuk saat ini, Website kami kurang support untuk IOS, MAC, atau Mode Incognito. Apabila masih terkendala, silahkan hubungi kontak dibawah ini.",
+    a: "Untuk saat ini, Website kami kurang support untuk IOS, MAC, atau Mode Incognito. Coba untuk login menggunakan Desktop atau Android Apabila masih terkendala, silahkan hubungi kontak dibawah ini.",
   },
 ];
 
