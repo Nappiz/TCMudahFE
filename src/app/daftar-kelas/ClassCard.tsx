@@ -70,7 +70,7 @@ export default function ClassCard({
             <motion.button
               whileTap={{ scale: 0.98 }}
               onClick={() => onInc(item.id)}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-gradient-to-r from-cyan-500 to-blue-500 px-3 py-2 text-sm font-medium text-slate-900 hover:opacity-95"
+              className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-white/10 bg-gradient-to-r from-cyan-500 to-blue-500 px-3 py-2 text-sm font-medium text-slate-900 hover:opacity-95"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" />
               Masukkan Keranjang

@@ -74,7 +74,7 @@ export default function Hero() {
                 <div className="mx-6 h-16 rounded-full bg-gradient-to-r from-cyan-400/30 via-blue-500/30 to-indigo-400/30" />
               </div>
               <Link href="/daftar-kelas">
-                <Button variant="secondary">Daftar Sekarang</Button>
+                <Button variant="secondary">Daftar Kelas Sekarang</Button>
               </Link>
               <a
                 href={`https://drive.google.com/file/d/1iUxvc9C-_8lNf8aIx3FZN_wFjXfsbnox/view?usp=sharing`}

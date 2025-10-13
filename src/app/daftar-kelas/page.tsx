@@ -90,13 +90,11 @@ export default function DaftarKelasPage() {
 
   return (
     <main className="min-h-screen py-20">
-      {/* bg accent */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(900px_460px_at_18%_-10%,rgba(34,211,238,0.10),transparent_60%),radial-gradient(820px_480px_at_85%_0%,rgba(99,102,241,0.10),transparent_60%)]" />
       </div>
 
       <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
-        {/* Header + search + cart */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white">Daftar Kelas</h1>
@@ -116,7 +114,6 @@ export default function DaftarKelasPage() {
           </div>
         </div>
 
-        {/* Grid kelas */}
         {!catalog ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white/70">
             {err ? `Gagal memuat: ${err}` : "Memuat kelas…"}
@@ -126,13 +123,12 @@ export default function DaftarKelasPage() {
         ) : (
           <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((k) => {
-              // Komposisi mentor agar ClassCard lama tetap bisa dipakai
               const mentorObjs = (k.mentor_ids || []).map((id) => idxMentor.get(id)).filter(Boolean) as Mentor[];
               const combinedMentor: Mentor | undefined = mentorObjs.length
                 ? {
                     id: mentorObjs.map((m) => m.id).join(","),
                     name: mentorObjs.map((m) => m.name).join(" & "),
-                    angkatan: mentorObjs[0]?.angkatan ?? 0, // ambil salah satu (atau nanti sesuaikan di kartu)
+                    angkatan: mentorObjs[0]?.angkatan ?? 0, 
                     visible: true,
                   }
                 : undefined;
@@ -140,7 +136,7 @@ export default function DaftarKelasPage() {
               return (
                 <ClassCard
                   key={k.id}
-                  item={k as any}                 // ClassCard boleh masih pakai tipe lama
+                  item={k as any}                 
                   mentor={combinedMentor}
                   idxCur={idxCur}
                   qty={lines.find((l) => l.id === k.id)?.qty ?? 0}
@@ -152,7 +148,6 @@ export default function DaftarKelasPage() {
           </div>
         )}
 
-        {/* Drawer + checkout */}
         <CartDrawer
           openButtonSelector="#cart-floating"
           lines={lines}

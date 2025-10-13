@@ -30,7 +30,6 @@ export default function CartDrawer({
 }) {
   const [open, setOpen] = useState(false);
 
-  // attach to trigger
   useEffect(() => {
     const el = document.querySelector(openButtonSelector);
     if (!el) return;
@@ -44,7 +43,6 @@ export default function CartDrawer({
     .map((l) => ({ line: l, item: map.get(l.id) }))
     .filter((x) => x.item) as { line: CartLine; item: ClassItem }[];
 
-  // checkout states
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
   const [info, setInfo] = useState<CheckoutInfo | null>(null);
@@ -115,7 +113,7 @@ export default function CartDrawer({
                 <div className="text-white font-semibold">Keranjang</div>
                 <button
                   onClick={() => setOpen(false)}
-                  className="rounded-lg border border-white/15 px-3 py-1 text-sm text-white/80"
+                  className="cursor-pointer rounded-lg border border-white/15 px-3 py-1 text-sm text-white/80"
                 >
                   Tutup
                 </button>

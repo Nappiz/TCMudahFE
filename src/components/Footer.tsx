@@ -67,8 +67,8 @@ export default function Footer() {
                     </Link>
                 </li>
                 <li>
-                    <Link href="/dashboard" className="hover:text-white">
-                    Dashboard
+                    <Link href="/daftar-kelas" className="hover:text-white">
+                    Daftar Kelas
                     </Link>
                 </li>
                 </ul>
@@ -90,11 +90,6 @@ export default function Footer() {
                 <li>
                     <a href="https://www.instagram.com/tcmudah" target="_blank" rel="noreferrer" className="hover:text-white">
                     Instagram
-                    </a>
-                </li>
-                <li>
-                    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" className="hover:text-white">
-                    YouTube
                     </a>
                 </li>
                 </ul>

@@ -7,7 +7,7 @@ export default function CartButton({ count }: { count: number }) {
   return (
     <button
       id="cart-floating"
-      className="relative inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white hover:bg-white/10"
+      className="cursor-pointer relative inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white hover:bg-white/10"
       title="Buka keranjang"
       type="button"
     >
