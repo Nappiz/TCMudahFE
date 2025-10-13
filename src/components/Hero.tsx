@@ -77,7 +77,7 @@ export default function Hero() {
                 <Button variant="secondary">Daftar Kelas Sekarang</Button>
               </Link>
               <a
-                href={`https://drive.google.com/file/d/1iUxvc9C-_8lNf8aIx3FZN_wFjXfsbnox/view?usp=sharing`}
+                href={`https://drive.google.com/file/d/1UapWtZhq42n_5HJBHubTkyIqZ_k5XRMZ/view?usp=sharing`}
                 target="_blank"
                 rel="noreferrer"
               >
