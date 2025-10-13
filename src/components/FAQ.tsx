@@ -31,6 +31,10 @@ const faqs: Item[] = [
     q: "Apakah ada kelas offline?",
     a: "Untuk saat ini, kami hanya menyediakan kelas online!",
   },
+  {
+    q: "Kok saya tidak dapat login?",
+    a: "Untuk saat ini, Website kami kurang support untuk IOS, MAC, atau Mode Incognito. Apabila masih terkendala, silahkan hubungi kontak dibawah ini.",
+  },
 ];
 
 export default function FAQ() {
