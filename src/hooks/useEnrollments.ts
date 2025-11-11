@@ -8,7 +8,7 @@ import {
   User,
   ClassItem,
   Enrollment,
-} from "../api/admin";
+} from "../../lib/admin";
 
 type ModalVariant = "success" | "error" | "info" | "warn" | "default";
 

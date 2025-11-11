@@ -6,7 +6,7 @@ import Modal from "@/components/ui/Modal";
 
 import UsersSidebar from "./UsersSidebar";
 import ClassesSection from "./ClassesSection";
-import { useEnrollments } from "../hooks/useEnrollments";
+import { useEnrollments } from "@/hooks/useEnrollments";
 
 export default function EnrollmentsPage() {
   const {

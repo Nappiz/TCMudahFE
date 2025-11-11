@@ -2,7 +2,7 @@
 
 import { GraduationCap, CheckCircle2, Save } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import type { ClassItem, User } from "../api/admin";
+import type { ClassItem, User } from "../../../../../lib/admin";
 
 type Props = {
   classes: ClassItem[];

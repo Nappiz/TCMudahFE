@@ -2,9 +2,10 @@ export type Role = "superadmin" | "admin" | "mentor" | "peserta";
 
 export type User = {
   id: string;
-  full_name: string;
   email: string;
+  full_name: string;
   role: Role;
+  // field lain (nim, dsb) biarin aja implicit.
 };
 
 export type ClassItem = {
@@ -29,28 +30,47 @@ export type Enrollment = {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 
-async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(`${API_BASE}${path}`, {
+export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
     headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
     ...init,
   });
 
-  if (!r.ok) {
-    let msg = r.statusText;
+  if (!res.ok) {
+    let detail = "";
     try {
-      const j = await r.json();
-      if (j?.detail) msg = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail);
-    } catch {}
-    throw new Error(msg);
+      const data = await res.json();
+      detail = data?.detail ?? res.statusText;
+    } catch {
+      detail = res.statusText;
+    }
+    throw new Error(detail);
   }
 
-  return r.json() as Promise<T>;
+  return res.json() as Promise<T>;
+}
+
+/* ========= GENERAL ADMIN ========= */
+
+export function fetchMe() {
+  return api<User>("/me");
 }
 
 export function fetchAdminUsers() {
   return api<User[]>("/admin/users");
 }
+
+/* ========= ROLE MANAGEMENT ========= */
+
+export function updateUserRole(userId: string, role: Role) {
+  return api<User>(`/admin/users/${userId}/role`, {
+    method: "PATCH",
+    body: JSON.stringify({ role }),
+  });
+}
+
+/* ========= ENROLLMENTS / CLASSES ========= */
 
 export function fetchAdminClasses() {
   return api<ClassItem[]>("/admin/classes");

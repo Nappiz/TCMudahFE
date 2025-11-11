@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, Users } from "lucide-react";
-import type { User } from "../api/admin";
+import type { User } from "../../../../../lib/admin";
 
 type Props = {
   loading: boolean;
