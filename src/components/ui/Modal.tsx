@@ -10,7 +10,6 @@ type ModalProps = {
   onClose: () => void;
   title?: string;
   children?: React.ReactNode;
-  /** tombol di footer; contoh: [{label:'Simpan', onClick, variant:'primary'}] */
   actions?: Array<{
     label: string;
     onClick?: () => void;
@@ -19,7 +18,7 @@ type ModalProps = {
     disabled?: boolean;
   }>;
   variant?: Variant;
-  dismissible?: boolean; // klik backdrop & ESC enable
+  dismissible?: boolean; 
   size?: "sm" | "md" | "lg";
 };
 
@@ -35,7 +34,6 @@ export default function Modal({
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
-  // lock scroll + ESC close
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -82,15 +80,12 @@ export default function Modal({
         if (e.currentTarget === e.target) onClose();
       }}
     >
-      {/* backdrop */}
       <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" />
 
-      {/* panel */}
       <div
         ref={dialogRef}
         className={`relative ${widthClass} w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950/90 shadow-2xl`}
       >
-        {/* glow ring */}
         <div
           aria-hidden
           className={`pointer-events-none absolute -inset-px rounded-2xl bg-[conic-gradient(var(--tw-gradient-stops))] from-transparent via-transparent to-transparent`}
@@ -108,7 +103,6 @@ export default function Modal({
           className={`pointer-events-none absolute -bottom-28 -right-28 h-56 w-56 rounded-full blur-3xl bg-gradient-to-r ${glowMap[variant]}`}
         />
 
-        {/* header */}
         <div className="relative flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div className="flex items-center gap-2">
             {iconMap[variant]}
@@ -125,10 +119,8 @@ export default function Modal({
           )}
         </div>
 
-        {/* body */}
         <div className="relative p-5 text-white/80">{children}</div>
 
-        {/* footer */}
         {actions.length > 0 && (
           <div className="flex items-center justify-end gap-2 border-t border-white/10 px-5 py-3">
             {actions.map((a, i) => (
