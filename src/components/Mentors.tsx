@@ -66,7 +66,7 @@ export default function Mentors() {
               <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent pt-20">
                 <div className="mb-1 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-950/30 text-[10px] font-bold text-cyan-400 uppercase tracking-wide">
                   <GraduationCap className="w-3 h-3" />
-                  Angkatan 20{m.angkatan}
+                  Angkatan {m.angkatan}
                 </div>
                 
                 <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
@@ -74,7 +74,7 @@ export default function Mentors() {
                 </h3>
                 
                 <div className="space-y-2">
-                  {m.achievements.slice(0, 3).map((ach, idx) => (
+                  {m.achievements.slice(0, 5).map((ach, idx) => (
                     <div key={idx} className="flex items-start gap-2 text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
                       <Star className="w-3 h-3 text-yellow-500/70 mt-0.5 flex-shrink-0" />
                       <span className="line-clamp-1">{ach}</span>

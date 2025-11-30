@@ -209,7 +209,7 @@ export default function Hero() {
                         ))}
                      </div>
                      <div className="text-sm font-medium text-slate-300">
-                        500+ Maba Joined
+                        50+ Mahasiswa Joined
                      </div>
                   </div>
                </div>
