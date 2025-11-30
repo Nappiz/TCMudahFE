@@ -45,7 +45,6 @@ export default function ProgramGrid() {
 
   return (
     <section id="program" className="py-24 bg-slate-950 relative">
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-cyan-500/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-16 md:flex md:items-end md:justify-between">
            <div className="max-w-2xl">

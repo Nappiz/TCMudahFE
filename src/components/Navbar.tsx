@@ -98,23 +98,21 @@ export default function Navbar() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className={`
-          pointer-events-auto relative flex items-center justify-between
-          rounded-full transition-all duration-300
-          px-3 py-2 md:p-2
-          w-fit md:w-full max-w-[calc(100vw-2rem)]
-          ${scrolled ? "md:max-w-4xl bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50"
-                    : "md:max-w-7xl bg-transparent border border-transparent"}
+          pointer-events-auto
+          relative flex items-center justify-between p-2 rounded-full transition-all duration-300
+          ${scrolled 
+            ? "w-full max-w-4xl bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50" 
+            : "w-full max-w-7xl bg-transparent border border-transparent"}
         `}
       >
-
-        <Link href="/" className="flex items-center gap-3 pl-2 md:pl-4 group">
+        <Link href="/" className="flex items-center gap-3 pl-4 group">
           <div className="relative h-8 w-8 transition-transform group-hover:scale-110">
              <Image src="/logo.png" alt="TC Mudah" fill className="object-contain" priority />
           </div>
           <span className="font-bold text-white tracking-tight hidden sm:block">TC Mudah</span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-2 pr-0 md:pr-1">
+        <div className="hidden md:flex items-center gap-1 bg-white/5 rounded-full px-2 py-1 border border-white/5 mx-auto">
           {links.map((l) => (
             <Link
               key={l.href}

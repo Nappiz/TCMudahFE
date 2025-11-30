@@ -37,7 +37,6 @@ export default function Features() {
   return (
     <section id="features" className="py-32 relative bg-slate-950 overflow-hidden">
       <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] pointer-events-none mix-blend-overlay"></div>      
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-cyan-500/10 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="mb-20 flex flex-col md:flex-row md:items-end justify-between gap-6">
