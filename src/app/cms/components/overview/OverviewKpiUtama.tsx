@@ -1,52 +1,38 @@
 "use client";
 
-import {
-  Users,
-  Shield,
-  GraduationCap,
-  BookOpenText,
-} from "lucide-react";
+import { Users, GraduationCap, DollarSign, Activity } from "lucide-react";
 import type { CMSStats } from "@/hooks/useCMSOverview";
 import { StatCard } from "./overview-ui";
+import { rupiah } from "../../../../../lib/format";
 
-export default function OverviewKpiUtama({
-  stats,
-  loading,
-}: {
-  stats: CMSStats;
-  loading: boolean;
-}) {
+export default function OverviewKpiUtama({ stats, loading }: { stats: CMSStats; loading: boolean }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard
-        icon={<Users className="h-4 w-4" />}
-        title="Total Pengguna"
-        value={loading ? "…" : stats.totalUsers}
-        hint={`${stats.admin} admin • ${stats.mentor} mentor • ${stats.peserta} peserta`}
-        href="/cms/user-role"
+        icon={<DollarSign className="h-5 w-5" />}
+        title="Revenue (30d)"
+        value={loading ? "..." : rupiah(stats.revenue30d)}
+        trend="+12.5%"
+        hint="vs bulan lalu"
       />
       <StatCard
-        icon={<Shield className="h-4 w-4" />}
-        title="Admin & Superadmin"
-        value={loading ? "…" : stats.admin + stats.superadmin}
-        hint={`${stats.superadmin} superadmin • ${stats.admin} admin`}
-        href="/cms/user-role"
+        icon={<Users className="h-5 w-5" />}
+        title="Total User"
+        value={loading ? "..." : stats.totalUsers}
+        hint={`${stats.newUsers30d} user baru`}
       />
       <StatCard
-        icon={<GraduationCap className="h-4 w-4" />}
-        title="Mentor"
-        value={loading ? "…" : stats.totalMentors}
-        hint={`${stats.visibleMentors} tampil • rata-rata ${stats.classPerMentor.toFixed(
-          1
-        )} kelas/mentor`}
-        href="/cms/mentors"
+        icon={<Activity className="h-5 w-5" />}
+        title="Active Students"
+        value={loading ? "..." : stats.participantsActive}
+        hint="Order approved"
       />
       <StatCard
-        icon={<BookOpenText className="h-4 w-4" />}
-        title="Kurikulum"
-        value={loading ? "…" : stats.totalCurr}
-        hint="Semester 1–2"
-        href="/cms/curriculum"
+        icon={<GraduationCap className="h-5 w-5" />}
+        title="Total Kelas"
+        value={loading ? "..." : stats.totalClasses}
+        hint={`${stats.visibleClasses} published`}
+        href="/cms/classes"
       />
     </div>
   );

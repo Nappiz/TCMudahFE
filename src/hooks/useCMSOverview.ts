@@ -1,41 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../../lib/api";
-
-/* =========================================================
- * Types
- * =======================================================*/
-
-export type Role = "superadmin" | "admin" | "mentor" | "peserta";
-
-export type Me = {
-  id: string;
-  email: string;
-  full_name: string;
-  role: Role;
-};
-
-export type UserRow = {
-  id: string;
-  email: string;
-  full_name: string;
-  role: Role;
-  created_at?: string;
-};
-
-export type CurriculumRow = { id: string };
-export type TestimonialRow = { id: string; visible: boolean };
-export type MentorRow = { id: string; visible: boolean };
-export type ClassRow = { id: string; visible: boolean };
-
-export type OrderStatus = "pending" | "approved" | "rejected" | "expired";
-
-export type AdminOrder = {
-  id: string;
-  user_id: string;
-  total: number;
-  status: OrderStatus;
-  created_at?: string;
-};
+import type { 
+  AdminOrder, 
+  OrderStatus, 
+  Role, 
+  Me,
+  ClassItem,
+  Mentor,
+  Testimonial,
+  Curriculum
+} from "@/types/catalog"; 
 
 export type DailyPoint = { key: string; label: string; value: number };
 
@@ -76,6 +50,14 @@ export type CMSStats = {
   revSeries: DailyPoint[];
 };
 
+export type UserRow = {
+  id: string;
+  email: string;
+  full_name: string;
+  role: Role;
+  created_at?: string;
+};
+
 /* =========================================================
  * Helpers
  * =======================================================*/
@@ -100,7 +82,7 @@ function isWithinDays(dateStr?: string, days = 30) {
 }
 
 function formatShortDate(d: Date) {
-  return d.toLocaleDateString(undefined, {
+  return d.toLocaleDateString('id-ID', {
     month: "short",
     day: "numeric",
   });
@@ -110,7 +92,7 @@ function buildDailyBuckets(days: number): DailyPoint[] {
   const arr: DailyPoint[] = [];
   for (let i = days - 1; i >= 0; i--) {
     const d = daysAgo(i);
-    const key = d.toISOString().slice(0, 10);
+    const key = d.toISOString().slice(0, 10); 
     arr.push({
       key,
       label: formatShortDate(d),
@@ -122,10 +104,10 @@ function buildDailyBuckets(days: number): DailyPoint[] {
 
 function computeStats(
   users: UserRow[],
-  curriculum: CurriculumRow[],
-  testimonials: TestimonialRow[],
-  mentors: MentorRow[],
-  classes: ClassRow[],
+  curriculum: Curriculum[], 
+  testimonials: Testimonial[], 
+  mentors: Mentor[], 
+  classes: ClassItem[], 
   orders: AdminOrder[]
 ): CMSStats {
   // Users
@@ -141,7 +123,7 @@ function computeStats(
 
   // Testimonials
   const totalT = testimonials.length;
-  const visibleT = testimonials.filter((x) => x.visible).length;
+  const visibleT = testimonials.filter((x: any) => x.visible).length; 
   const hiddenT = totalT - visibleT;
 
   // Mentors
@@ -228,18 +210,14 @@ function computeStats(
   };
 }
 
-/* =========================================================
- * Hook
- * =======================================================*/
-
 export function useCMSOverview() {
   const [me, setMe] = useState<Me | null>(null);
 
   const [users, setUsers] = useState<UserRow[]>([]);
-  const [curriculum, setCurriculum] = useState<CurriculumRow[]>([]);
-  const [testimonials, setTestimonials] = useState<TestimonialRow[]>([]);
-  const [mentors, setMentors] = useState<MentorRow[]>([]);
-  const [classes, setClasses] = useState<ClassRow[]>([]);
+  const [curriculum, setCurriculum] = useState<Curriculum[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [mentors, setMentors] = useState<Mentor[]>([]);
+  const [classes, setClasses] = useState<ClassItem[]>([]); 
   const [orders, setOrders] = useState<AdminOrder[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -255,10 +233,10 @@ export function useCMSOverview() {
 
       const [u, c, t, mn, cl, od] = await Promise.allSettled([
         api<UserRow[]>("/admin/users"),
-        api<CurriculumRow[]>("/curriculum"),
-        api<TestimonialRow[]>("/admin/testimonials"),
-        api<MentorRow[]>("/admin/mentors"),
-        api<ClassRow[]>("/admin/classes"),
+        api<Curriculum[]>("/curriculum"),
+        api<Testimonial[]>("/admin/testimonials"),
+        api<Mentor[]>("/admin/mentors"),
+        api<ClassItem[]>("/admin/classes"), 
         api<AdminOrder[]>("/admin/orders"),
       ]);
 
@@ -299,5 +277,5 @@ export function useCMSOverview() {
     [users, curriculum, testimonials, mentors, classes, orders]
   );
 
-  return { me, stats, orders, loading, err, lastLoadedAt, reload };
+  return { me, stats, orders, classes, loading, err, lastLoadedAt, reload };
 }

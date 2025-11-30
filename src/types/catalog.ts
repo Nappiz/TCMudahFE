@@ -7,8 +7,24 @@ export type Me = {
   role: Role;
 };
 
-export type Mentor = { id: string; name: string; angkatan: number; visible?: boolean };
+export type Testimonial = {
+  id: string;
+  name: string;
+  text: string;
+  visible: boolean;
+  created_at?: string;
+};
+
+export type Mentor = { 
+  id: string; 
+  name: string; 
+  angkatan: number; 
+  visible?: boolean; 
+  achievements?: string[] 
+};
+
 export type Curriculum = { id: string; code: string; name: string; sem: 1 | 2 };
+
 export type ClassItem = {
   id: string;
   title: string;
@@ -18,6 +34,7 @@ export type ClassItem = {
   price: number; // IDR
   visible?: boolean;
 };
+
 export type Catalog = {
   mentors: Mentor[];
   curriculum: Curriculum[];
@@ -52,4 +69,26 @@ export type ClassMaterial = {
   url: string;
   visible: boolean;
   created_at?: string;
+};
+
+export type OrderStatus = "pending" | "approved" | "rejected" | "expired";
+
+export type OrderItem = {
+  class_id: string;
+  qty: number;
+  price: number;
+};
+
+export type AdminOrder = {
+  id: string;
+  user_id: string;
+  user_name?: string;
+  user_email?: string;
+  total: number;
+  status: OrderStatus;
+  created_at?: string;
+  items?: OrderItem[];
+  proof_url?: string;
+  sender_name?: string;
+  note?: string;
 };

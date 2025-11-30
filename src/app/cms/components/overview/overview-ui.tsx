@@ -1,68 +1,9 @@
 import Link from "next/link";
 import { rupiah } from "../../../../../lib/format";
-import type {
-  DailyPoint,
-  AdminOrder,
-  OrderStatus,
-} from "@/hooks/useCMSOverview";
+import type { DailyPoint } from "@/hooks/useCMSOverview";
+import type { AdminOrder, OrderStatus } from "@/types/catalog";
 import { parseDate } from "@/hooks/useCMSOverview";
-
-/* =========================================================
- * Panel & Cards
- * =======================================================*/
-
-export function Panel({
-  title,
-  right,
-  children,
-}: {
-  title: string;
-  right?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="text-sm font-semibold text-white">{title}</div>
-        {right}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-export function StatCard(props: {
-  icon: React.ReactNode;
-  title: string;
-  value: string | number;
-  hint?: string;
-  href?: string;
-}) {
-  const content = (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 transition-colors hover:bg-white/[0.08]">
-      <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cyan-500/10 blur-2xl" />
-      <div className="relative">
-        <div className="flex items-center justify-between">
-          <div className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/70">
-            {props.icon} <span>{props.title}</span>
-          </div>
-          <span className="text-2xl font-bold text-white">{props.value}</span>
-        </div>
-        {props.hint ? (
-          <div className="mt-2 text-xs text-white/60">{props.hint}</div>
-        ) : null}
-      </div>
-    </div>
-  );
-
-  return props.href ? (
-    <Link href={props.href} className="block">
-      {content}
-    </Link>
-  ) : (
-    content
-  );
-}
+import { ArrowUpRight, TrendingUp, Calendar, Clock, Activity } from "lucide-react";
 
 export function StatRow({
   icon,
@@ -74,63 +15,177 @@ export function StatRow({
   value: string | number;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-      <div className="inline-flex items-center gap-2 text-xs text-white/70">
-        {icon} <span>{label}</span>
+    <div className="flex items-center justify-between py-3 border-b border-white/5 last:border-0 group px-5 hover:bg-white/[0.02] transition-colors">
+      <div className="flex items-center gap-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-slate-400 group-hover:text-white group-hover:bg-cyan-500/20 transition-colors ring-1 ring-white/5">
+          {icon}
+        </div>
+        <span className="text-sm text-slate-400 group-hover:text-slate-200 transition-colors">{label}</span>
       </div>
-      <div className="text-sm font-semibold text-white">{value}</div>
-    </div>
-  );
-}
-
-export function KPIBlock({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) {
-  return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-      <div className="text-xs text-white/60">{label}</div>
-      <div className="mt-1 text-lg font-semibold text-white">{value}</div>
+      <span className="text-sm font-semibold text-white font-mono">{value}</span>
     </div>
   );
 }
 
 /* =========================================================
- * Mini charts
+ * Primitives
  * =======================================================*/
 
-export function MiniBars({
+export function GlassCard({
   title,
-  series,
-  formatValue,
+  right,
+  children,
+  className = "",
+  noPadding = false,
 }: {
-  title: string;
-  series: DailyPoint[];
-  formatValue: (v: number) => string;
+  title?: string;
+  right?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+  noPadding?: boolean;
 }) {
-  const max = Math.max(1, ...series.map((d) => d.value));
   return (
-    <div>
-      <div className="mb-2 flex items-center justify-between">
-        <div className="text-xs font-medium text-white/80">{title}</div>
-        <div className="text-[11px] text-white/50">
-          {series[0]?.label} – {series[series.length - 1]?.label}
+    <div className={`relative flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-[#0F1218]/60 shadow-xl backdrop-blur-md ${className}`}>
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-50" />
+      
+      {(title || right) && (
+        <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
+          {title && <h3 className="text-sm font-semibold tracking-wide text-slate-200">{title}</h3>}
+          {right}
+        </div>
+      )}
+      <div className={`relative z-10 flex-1 ${noPadding ? "" : "p-5"}`}>{children}</div>
+    </div>
+  );
+}
+
+export function StatCard(props: {
+  icon: React.ReactNode;
+  title: string;
+  value: string | number;
+  hint?: string;
+  href?: string;
+  trend?: string;
+  trendUp?: boolean;
+}) {
+  const content = (
+    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/5 bg-[#0F1218]/80 p-5 transition-all hover:bg-[#1A1D24] hover:border-white/10">
+      <div className="absolute top-0 right-0 p-4 opacity-0 transition-opacity group-hover:opacity-100">
+        <ArrowUpRight className="h-4 w-4 text-slate-500" />
+      </div>
+      
+      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-white/5 text-slate-400 ring-1 ring-white/5 transition-colors group-hover:bg-cyan-500/10 group-hover:text-cyan-400 group-hover:ring-cyan-500/20">
+        {props.icon}
+      </div>
+      
+      <div>
+        <div className="text-xs font-medium uppercase tracking-wider text-slate-500">{props.title}</div>
+        <div className="mt-1 text-2xl font-bold text-white tracking-tight">{props.value}</div>
+      </div>
+
+      {(props.hint || props.trend) && (
+        <div className="mt-4 flex items-center gap-2 text-xs">
+          {props.trend && (
+            <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${props.trendUp !== false ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+              <TrendingUp className={`h-3 w-3 ${props.trendUp === false ? 'rotate-180' : ''}`} /> {props.trend}
+            </span>
+          )}
+          {props.hint && <span className="text-slate-500 truncate">{props.hint}</span>}
+        </div>
+      )}
+    </div>
+  );
+
+  return props.href ? <Link href={props.href} className="block h-full">{content}</Link> : content;
+}
+
+/* =========================================================
+ * Activity & Lists
+ * =======================================================*/
+
+export function ActivityItem({
+  icon,
+  title,
+  subtitle,
+  time,
+}: {
+  icon: React.ReactNode;
+  title: React.ReactNode;
+  subtitle: string;
+  time: string;
+}) {
+  return (
+    <div className="group flex items-start gap-3 border-b border-white/5 px-5 py-3 last:border-0 hover:bg-white/[0.02]">
+      <div className="mt-1 flex h-8 w-8 flex-none items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10 transition-colors group-hover:bg-cyan-500/10 group-hover:text-cyan-400 group-hover:ring-cyan-500/20">
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-medium text-white">{title}</div>
+        <div className="text-xs text-slate-500">{subtitle}</div>
+      </div>
+      <div className="text-[10px] text-slate-600 whitespace-nowrap">{time}</div>
+    </div>
+  );
+}
+
+export function TopClassItem({
+  rank,
+  title,
+  sales,
+  revenue,
+}: {
+  rank: number;
+  title: string;
+  sales: number;
+  revenue: number;
+}) {
+  const rankColor = rank === 1 ? "text-yellow-400" : rank === 2 ? "text-slate-300" : rank === 3 ? "text-amber-600" : "text-slate-600";
+  
+  return (
+    <div className="flex items-center gap-4 border-b border-white/5 px-5 py-3 last:border-0 hover:bg-white/[0.02]">
+      <div className={`font-mono text-sm font-bold w-4 text-center ${rankColor}`}>#{rank}</div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-medium text-slate-200">{title}</div>
+        <div className="text-xs text-slate-500">{sales} terjual</div>
+      </div>
+      <div className="text-right text-sm font-mono font-medium text-white">{rupiah(revenue)}</div>
+    </div>
+  );
+}
+
+/* =========================================================
+ * Visualization
+ * =======================================================*/
+
+export function MiniBars({ title, series, formatValue }: { title: string; series: DailyPoint[]; formatValue: (v: number) => string }) {
+  const max = Math.max(1, ...series.map((d) => d.value));
+  const total = series.reduce((a, b) => a + b.value, 0);
+  
+  return (
+    <div className="p-5">
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+            <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">{title}</div>
+            <div className="text-3xl font-bold text-white mt-1">{formatValue(total)}</div>
+        </div>
+        <div className="flex items-center gap-1 rounded-full border border-white/5 bg-white/[0.02] px-2 py-1 text-[10px] text-slate-400">
+           <Calendar className="w-3 h-3" /> 14 Days
         </div>
       </div>
-      <div className="flex items-end gap-1 rounded-xl border border-white/10 bg-white/5 p-2">
+      
+      <div className="flex items-end gap-1 h-28">
         {series.map((d) => {
-          const h = (d.value / max) * 96;
+          const h = (d.value / max) * 100;
           return (
-            <div key={d.key} className="group relative flex-1">
+            <div key={d.key} className="group relative flex-1 h-full flex items-end">
               <div
-                className="mx-auto w-2 rounded-md bg-white/20"
-                style={{ height: Math.max(2, h) }}
+                className="w-full rounded-t-sm bg-gradient-to-t from-cyan-900/40 to-cyan-500/40 transition-all duration-300 group-hover:from-cyan-600 group-hover:to-cyan-400"
+                style={{ height: `${Math.max(4, h)}%` }}
               />
-              <div className="pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 rounded-md border border-white/10 bg-black/80 px-2 py-1 text-[10px] text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
-                {d.label}: {formatValue(d.value)}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
+                 <div className="bg-slate-800 text-white text-[10px] px-2 py-1 rounded border border-white/10 whitespace-nowrap shadow-xl">
+                    <span className="opacity-50">{d.label}:</span> <span className="font-bold">{formatValue(d.value)}</span>
+                 </div>
               </div>
             </div>
           );
@@ -141,110 +196,65 @@ export function MiniBars({
 }
 
 /* =========================================================
- * Tables & Quick panel
+ * Table
  * =======================================================*/
 
 export function PendingTable({ orders }: { orders: AdminOrder[] }) {
   if (!orders.length) {
     return (
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/60">
-        Tidak ada order pending.
+      <div className="flex flex-col items-center justify-center py-10 text-center">
+        <div className="rounded-full bg-white/5 p-3 mb-3"><CheckCircle2 className="w-5 h-5 text-emerald-500" /></div>
+        <div className="text-sm text-slate-400">Semua aman! Tidak ada order pending.</div>
       </div>
     );
   }
 
   const statusColor = (s: OrderStatus) => {
     switch (s) {
-      case "approved":
-        return "border-emerald-400/30 bg-emerald-500/15 text-emerald-200";
-      case "rejected":
-        return "border-rose-400/30 bg-rose-500/15 text-rose-200";
-      case "expired":
-        return "border-slate-400/30 bg-slate-500/15 text-slate-200";
-      default:
-        return "border-amber-400/30 bg-amber-500/15 text-amber-200";
+      case "approved": return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+      case "rejected": return "bg-rose-500/10 text-rose-400 border-rose-500/20";
+      case "expired": return "bg-slate-500/10 text-slate-400 border-slate-500/20";
+      default: return "bg-amber-500/10 text-amber-400 border-amber-500/20";
     }
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10">
-      <table className="min-w-full border-collapse bg-white/5">
-        <thead className="bg-white/[0.04] text-xs uppercase tracking-wide text-white/60">
-          <tr>
-            <th className="px-3 py-2 text-left">Waktu</th>
-            <th className="px-3 py-2 text-left">Order ID</th>
-            <th className="px-3 py-2 text-left">User</th>
-            <th className="px-3 py-2 text-left">Total</th>
-            <th className="px-3 py-2 text-left">Status</th>
-            <th className="px-3 py-2" />
+    <div className="w-full overflow-x-auto">
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr className="border-b border-white/5 text-xs font-medium uppercase tracking-wider text-slate-500">
+            <th className="px-5 py-3 pl-6">User</th>
+            <th className="px-5 py-3 text-right">Total</th>
+            <th className="px-5 py-3 text-center">Status</th>
+            <th className="px-5 py-3 text-right pr-6">Action</th>
           </tr>
         </thead>
-        <tbody className="text-sm text-white/80">
-          {orders.map((o) => {
-            const t = parseDate(o.created_at);
-            const time = t ? t.toLocaleString() : "-";
-            return (
-              <tr key={o.id} className="border-t border-white/10">
-                <td className="px-3 py-2">{time}</td>
-                <td className="px-3 py-2 font-mono text-white">
-                  {o.id.slice(0, 8)}…
-                </td>
-                <td className="px-3 py-2">
-                  {o.user_id ? o.user_id.slice(0, 8) + "…" : "-"}
-                </td>
-                <td className="px-3 py-2">{rupiah(o.total || 0)}</td>
-                <td className="px-3 py-2">
-                  <span
-                    className={`rounded-md border px-2 py-0.5 text-xs capitalize ${statusColor(
-                      o.status
-                    )}`}
-                  >
-                    {o.status}
-                  </span>
-                </td>
-                <td className="px-3 py-2 text-right">
-                  <Link
-                    href="/cms/orders"
-                    className="text-xs text-cyan-300 hover:underline"
-                  >
-                    Kelola
-                  </Link>
-                </td>
-              </tr>
-            );
-          })}
+        <tbody className="divide-y divide-white/5">
+          {orders.map((o) => (
+            <tr key={o.id} className="group hover:bg-white/[0.02] transition-colors">
+              <td className="px-5 py-3 pl-6">
+                <div className="font-medium text-white truncate max-w-[120px]">{o.user_id ? "User " + o.user_id.slice(0, 4) : "Guest"}</div>
+                <div className="text-[10px] text-slate-500">{parseDate(o.created_at)?.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+              </td>
+              <td className="px-5 py-3 text-right font-mono text-slate-300">
+                {rupiah(o.total || 0)}
+              </td>
+              <td className="px-5 py-3 text-center">
+                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${statusColor(o.status)}`}>
+                  {o.status}
+                </span>
+              </td>
+              <td className="px-5 py-3 text-right pr-6">
+                <Link href="/cms/orders" className="text-xs font-medium text-cyan-400 hover:text-cyan-300">
+                  Review
+                </Link>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
   );
 }
 
-export function QuickPanel({
-  title,
-  items,
-  custom,
-}: {
-  title: string;
-  items?: { label: string; href: string }[];
-  custom?: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <div className="mb-2 text-sm font-semibold text-white">{title}</div>
-      {items && (
-        <div className="flex flex-wrap gap-2">
-          {items.map((it) => (
-            <Link
-              key={it.href}
-              href={it.href}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-white/90 hover:bg-white/15"
-            >
-              {it.label}
-            </Link>
-          ))}
-        </div>
-      )}
-      {custom}
-    </div>
-  );
-}
+import { CheckCircle2 } from "lucide-react";

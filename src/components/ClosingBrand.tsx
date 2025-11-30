@@ -34,12 +34,12 @@ export default function ClosingBrand() {
             </div>
 
             <h3 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white">
-                TC <span className="text-brand">Mudah</span>
+                TC <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 animate-gradient-x">Mudah</span>
             </h3>
 
             <p className="mt-3 text-base sm:text-lg lg:text-xl text-white/75 mx-auto max-w-3xl">
                 <span className="text-white/90">Raih prestasi gemilang bersama</span>{" "}
-                <span className="text-brand font-semibold">TC Mudah</span>.
+                <span className="text-brand font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 animate-gradient-x">TC Mudah</span>.
             </p>
 
             <div className="mx-auto mt-10 h-px w-full max-w-md bg-gradient-to-r from-transparent via-white/20 to-transparent" />

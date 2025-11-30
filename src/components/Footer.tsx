@@ -1,117 +1,48 @@
 "use client";
-import Container from "./ui/Container";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="relative mt-10 border-t border-white/10">
-        <Container className="py-10">
-            <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-                <div className="flex items-center gap-2">
-                <div className="relative h-8 w-8">
-                    <Image
-                        src="/logo.png"
-                        alt="Logo TC Mudah"
-                        fill
-                        sizes="32px"
-                        className="object-contain"
-                    />
+    <footer className="border-t border-white/10 bg-slate-950 pt-16 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div className="md:col-span-2">
+                    <Link href="/" className="flex items-center gap-2 mb-4">
+                        <div className="relative h-8 w-8">
+                            <Image src="/logo.png" alt="Logo" fill className="object-contain" />
+                        </div>
+                        <span className="font-bold text-xl text-white">TC Mudah</span>
+                    </Link>
+                    <p className="text-slate-400 max-w-sm leading-relaxed">
+                        TC Mudah adalah tutoring online untuk Mahasiswa Baru Teknik Informatika ITS. Materi terstruktur, mentor berpengalaman, dan dukungan komunitas membuat belajarmu fokus serta menyenangkan.
+                    </p>
                 </div>
-                <span className="text-lg font-bold tracking-tight text-white">TC Mudah</span>
+                
+                <div>
+                    <h4 className="font-bold text-white mb-4">Platform</h4>
+                    <ul className="space-y-2 text-sm text-slate-400">
+                        <li><Link href="#program" className="hover:text-cyan-400 transition-colors">Kurikulum</Link></li>
+                        <li><Link href="#features" className="hover:text-cyan-400 transition-colors">Fitur</Link></li>
+                        <li><Link href="/daftar-kelas" className="hover:text-cyan-400 transition-colors">Daftar Kelas</Link></li>
+                        <li><Link href="/login" className="hover:text-cyan-400 transition-colors">Masuk Member</Link></li>
+                    </ul>
                 </div>
-                <p className="mt-3 text-sm text-white/70">
-                Tutoring online untuk Mahasiswa Baru IF ITS. Materi terstruktur, mentor berpengalaman, dan komunitas
-                suportif.
-                </p>
+
+                <div>
+                    <h4 className="font-bold text-white mb-4">Connect</h4>
+                    <ul className="space-y-2 text-sm text-slate-400">
+                        <li><a href="https://wa.me/6281519291757" className="hover:text-cyan-400 transition-colors">WhatsApp Admin</a></li>
+                        <li><a href="https://instagram.com/tcmudah" className="hover:text-cyan-400 transition-colors">Instagram</a></li>
+                        <li><a href="mailto:support@tcmudah.com" className="hover:text-cyan-400 transition-colors">Email Support</a></li>
+                    </ul>
+                </div>
             </div>
 
-            <div>
-                <FooterTitle>Jelajah</FooterTitle>
-                <ul className="mt-3 space-y-2 text-sm text-white/70">
-                <li>
-                    <a href="#program" className="hover:text-white">
-                    Program
-                    </a>
-                </li>
-                <li>
-                    <a href="#testimoni" className="hover:text-white">
-                    Testimoni
-                    </a>
-                </li>
-                <li>
-                    <a href="/daftar-kelas" className="hover:text-white">
-                    Daftar Kelas
-                    </a>
-                </li>
-                <li>
-                    <a href="#kontak" className="hover:text-white">
-                    Kontak
-                    </a>
-                </li>
-                </ul>
+            <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+                <p>© {new Date().getFullYear()} TC Mudah. All rights reserved.</p>
             </div>
-
-            <div>
-                <FooterTitle>Akun</FooterTitle>
-                <ul className="mt-3 space-y-2 text-sm text-white/70">
-                <li>
-                    <Link href="/register" className="hover:text-white">
-                    Daftar
-                    </Link>
-                </li>
-                <li>
-                    <Link href="/login" className="hover:text-white">
-                    Masuk
-                    </Link>
-                </li>
-                <li>
-                    <Link href="/daftar-kelas" className="hover:text-white">
-                    Daftar Kelas
-                    </Link>
-                </li>
-                </ul>
-            </div>
-
-            <div>
-                <FooterTitle>Kontak</FooterTitle>
-                <ul className="mt-3 space-y-2 text-sm text-white/70">
-                <li>
-                    <a href="mailto:Badruzzamannafiz@gmail.com" className="hover:text-white">
-                    Email
-                    </a>
-                </li>
-                <li>
-                    <a href="https://wa.me/6281519291757" target="_blank" rel="noreferrer" className="hover:text-white">
-                    WhatsApp
-                    </a>
-                </li>
-                <li>
-                    <a href="https://www.instagram.com/tcmudah" target="_blank" rel="noreferrer" className="hover:text-white">
-                    Instagram
-                    </a>
-                </li>
-                </ul>
-            </div>
-            </div>
-
-            <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/60 sm:flex-row">
-            <p>© {new Date().getFullYear()} TC Mudah. All rights reserved.</p>
-            <div className="flex items-center gap-4">
-                <Link href="#" className="hover:text-white">
-                Syarat & Ketentuan
-                </Link>
-                <Link href="#" className="hover:text-white">
-                Kebijakan Privasi
-                </Link>
-            </div>
-            </div>
-        </Container>
+        </div>
     </footer>
   );
-}
-
-function FooterTitle({ children }: { children: React.ReactNode }) {
-  return <h4 className="text-sm font-semibold text-white">{children}</h4>;
 }

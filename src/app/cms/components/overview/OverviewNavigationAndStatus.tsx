@@ -1,8 +1,9 @@
 "use client";
 
-import { rupiah } from "../../../../../lib/format";
-import type { CMSStats, Me } from "@/hooks/useCMSOverview";
-import { QuickPanel } from "./overview-ui";
+import type { CMSStats } from "@/hooks/useCMSOverview";
+import type { Me } from "@/types/catalog";
+import { GlassCard, StatRow } from "./overview-ui";
+import { CheckCircle2, XCircle, Clock, Archive } from "lucide-react";
 
 export default function OverviewNavigationAndStatus({
   me,
@@ -12,75 +13,42 @@ export default function OverviewNavigationAndStatus({
   stats: CMSStats;
 }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <QuickPanel
-        title="Navigasi Cepat"
-        items={[
-          { label: "Kelola Role Pengguna", href: "/cms/user-role" },
-          { label: "Atur Kurikulum", href: "/cms/curriculum" },
-          { label: "Kelola Testimonials", href: "/cms/testimonials" },
-          { label: "Kelola Mentor", href: "/cms/mentors" },
-          { label: "Validasi Orders", href: "/cms/orders" },
-          { label: "Kelola Kelas", href: "/cms/classes" },
-          { label: "Shortlinks", href: "/cms/shortlinks" },
-        ]}
-      />
-      <QuickPanel
-        title="Status Ringkas"
-        custom={
-          <ul className="space-y-2 text-sm text-white/70">
-            <li>
-              • Role aktif:{" "}
-              <span className="text-white">{me?.role ?? "-"}</span>
-            </li>
-            <li>
-              • Testimoni:{" "}
-              <span className="text-white">{stats.visibleT}</span> tampil,{" "}
-              <span className="text-white">{stats.hiddenT}</span> disembunyikan
-            </li>
-            <li>
-              • Mentor tampil:{" "}
-              <span className="text-white">{stats.visibleMentors}</span> /{" "}
-              <span className="text-white">{stats.totalMentors}</span>
-            </li>
-            <li>
-              • Kelas tampil:{" "}
-              <span className="text-white">{stats.visibleClasses}</span> /{" "}
-              <span className="text-white">{stats.totalClasses}</span>
-            </li>
-            <li>
-              • Orders: pending{" "}
-              <span className="text-white">{stats.pendingOrders}</span>,
-              approved{" "}
-              <span className="text-white">{stats.approvedOrders}</span>,
-              rejected{" "}
-              <span className="text-white">{stats.rejectedOrders}</span>,
-              expired{" "}
-              <span className="text-white">{stats.expiredOrders}</span>
-            </li>
-            <li>
-              • Pemasukan (approved):{" "}
-              <span className="text-white">
-                {rupiah(stats.revenueApproved)}
-              </span>
-            </li>
-            <li>
-              • AOV (approved):{" "}
-              <span className="text-white">{rupiah(stats.aov)}</span>
-            </li>
-            <li>
-              • Approval rate:{" "}
-              <span className="text-white">{stats.approvalRate}%</span>
-            </li>
-            <li>
-              • Peserta aktif:{" "}
-              <span className="text-white">
-                {stats.participantsActive}
-              </span>
-            </li>
-          </ul>
-        }
-      />
+    <div className="space-y-6">
+      <GlassCard title="Statistik Order">
+         <div className="space-y-1">
+            <StatRow 
+                icon={<CheckCircle2 className="w-4 h-4 text-emerald-400" />} 
+                label="Approved" 
+                value={stats.approvedOrders} 
+            />
+            <StatRow 
+                icon={<Clock className="w-4 h-4 text-amber-400" />} 
+                label="Pending" 
+                value={stats.pendingOrders} 
+            />
+            <StatRow 
+                icon={<XCircle className="w-4 h-4 text-rose-400" />} 
+                label="Rejected" 
+                value={stats.rejectedOrders} 
+            />
+            <StatRow 
+                icon={<Archive className="w-4 h-4 text-slate-400" />} 
+                label="Expired" 
+                value={stats.expiredOrders} 
+            />
+         </div>
+      </GlassCard>
+
+      <div className="rounded-2xl bg-gradient-to-br from-cyan-600 to-blue-700 p-5 text-white shadow-xl relative overflow-hidden group">
+         <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors"></div>
+         <h4 className="text-lg font-bold mb-2 relative z-10">Halo Admin!</h4>
+         <p className="text-sm text-white/80 mb-4 relative z-10">
+            Jangan lupa cek order yang pending ya. Semakin cepat di-approve, semakin senang user kita!
+         </p>
+         <div className="text-xs font-mono bg-black/20 inline-block px-2 py-1 rounded">
+            Approval Rate: {stats.approvalRate}%
+         </div>
+      </div>
     </div>
   );
 }

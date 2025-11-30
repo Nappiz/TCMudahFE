@@ -4,33 +4,27 @@ import ProgramGrid from "../components/ProgramGrid";
 import Features from "../components/Features";
 import Mentors from "../components/Mentors";
 import Testimonials from "../components/Testimonials";
-import SectionDivider from "../components/SectionDivider";
 import FAQ from "../components/FAQ";
 import ClosingCTA from "../components/ClosingCTA";
-import ClosingBrand from "../components/ClosingBrand"; 
 import Footer from "../components/Footer";
+import ClosingBrand from "@/components/ClosingBrand";
 
 export default function Page() {
   return (
-    <main className="bg-slate-950 text-white min-h-screen">
+    <main className="bg-slate-950 text-white min-h-screen selection:bg-cyan-500/30 selection:text-cyan-50">
       <Navbar />
-      <Hero />
-      <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <SectionDivider />
+      
+      <div className="space-y-0"> 
+        <Hero />
         <ProgramGrid />
-        <SectionDivider />
         <Features />
-        <SectionDivider />
         <Mentors />
-        <SectionDivider />
         <Testimonials />
-        <SectionDivider />
         <FAQ />
-        <SectionDivider />
+        <ClosingCTA />
+        <ClosingBrand />
       </div>
 
-      <ClosingCTA />
-      <ClosingBrand />
       <Footer />
     </main>
   );

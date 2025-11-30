@@ -1,59 +1,34 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-  useMemo,
-  type ReactNode,
-} from "react";
+import { useEffect, useState, useMemo, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import Container from "@/components/ui/Container";
-import {
-  BadgeCheck,
-  Home,
-  Users,
-  BookOpenText,
-  MessageSquare,
-  GraduationCap,
-  FileBox,
-  FileVideo,
-  Link2,
-} from "lucide-react";
-
+import Image from "next/image";
+import { BadgeCheck, Home, Users, BookOpenText, MessageSquare, GraduationCap, FileBox, FileVideo, Link2, Search, Bell, LogOut } from "lucide-react";
 import { apiMe } from "../../../../lib/api";
 
 type Role = "superadmin" | "admin" | "mentor" | "peserta";
 type User = { id: string; email: string; full_name: string; role: Role };
 
-type MenuItem = {
-  href: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
-
-const MENU_ITEMS: MenuItem[] = [
-  { href: "/cms", label: "Home", icon: Home },
-  { href: "/cms/user-role", label: "User Role", icon: Users },
-  { href: "/cms/curriculum", label: "Kurikulum", icon: BookOpenText },
-  { href: "/cms/testimonials", label: "Testimonials", icon: MessageSquare },
-  { href: "/cms/mentors", label: "Mentor", icon: Users },
+const MENU_ITEMS = [
+  { href: "/cms", label: "Overview", icon: Home },
+  { href: "/cms/orders", label: "Orders", icon: BadgeCheck }, 
+  { type: "divider" },
   { href: "/cms/classes", label: "Kelas", icon: GraduationCap },
-  { href: "/cms/orders", label: "Orders", icon: BadgeCheck },
+  { href: "/cms/curriculum", label: "Kurikulum", icon: BookOpenText },
+  { href: "/cms/materials", label: "Materi Video", icon: FileVideo },
+  { href: "/cms/mentors", label: "Mentor", icon: Users },
+  { type: "divider" },
+  { href: "/cms/user-role", label: "Users & Role", icon: Users },
   { href: "/cms/enrollments", label: "Enrollments", icon: FileBox },
-  { href: "/cms/materials", label: "Materials", icon: FileVideo },
+  { type: "divider" },
+  { href: "/cms/testimonials", label: "Testimonials", icon: MessageSquare },
   { href: "/cms/feedback", label: "Feedbacks", icon: MessageSquare },
   { href: "/cms/shortlinks", label: "Shortlinks", icon: Link2 },
 ];
 
-export default function CMSLayoutClient({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function CMSLayoutClient({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
-
   const [me, setMe] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -63,167 +38,102 @@ export default function CMSLayoutClient({
       try {
         const u = await apiMe();
         if (cancel) return;
-
         if (u.role === "peserta") {
           router.replace("/");
           return;
         }
-
         setMe(u as User);
       } catch {
-        if (!cancel) {
-          router.replace("/");
-        }
+        if (!cancel) router.replace("/");
       } finally {
         if (!cancel) setLoading(false);
       }
     })();
-
-    return () => {
-      cancel = true;
-    };
+    return () => { cancel = true; };
   }, [router]);
 
-  const activeLabel = useMemo(() => {
-    if (pathname === "/cms") return "Home";
-    const last = pathname.split("/").filter(Boolean).slice(-1)[0] ?? "";
-    return last.replace(/-/g, " ");
-  }, [pathname]);
-
-  if (loading) {
-    return (
-      <main className="min-h-[60vh] py-24">
-        <Container className="max-w-7xl px-4 md:px-6">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 animate-pulse text-white/70">
-            Memuat CMS…
-          </div>
-        </Container>
-      </main>
-    );
-  }
-
+  if (loading) return null; 
   if (!me) return null;
 
   return (
-    <main className="min-h-screen py-20">
-      {/* Background accent */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-slate-950" />
-        <div className="absolute inset-0 bg-[radial-gradient(900px_460px_at_18%_-10%,rgba(34,211,238,0.12),transparent_60%),radial-gradient(820px_480px_at_85%_0%,rgba(99,102,241,0.14),transparent_60%)]" />
-      </div>
-
-      <Container className="max-w-7xl px-4 md:px-6">
-        <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-          <Sidebar me={me} pathname={pathname} />
-
-          <section className="rounded-2xl border border-white/10 bg-white/5 shadow-[0_18px_45px_rgba(15,23,42,0.55)]">
-            <TopBar activeLabel={activeLabel} role={me.role} />
-
-            <div className="p-5">{children}</div>
-          </section>
+    <div className="flex min-h-screen bg-[#0B0E14] text-slate-200 font-sans selection:bg-cyan-500/30">
+      <Sidebar me={me} />
+      <main className="flex-1 flex flex-col min-w-0">
+        <TopBar me={me} />
+        <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
+           <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {children}
+           </div>
         </div>
-      </Container>
-    </main>
-  );
-}
-
-/* =========================================================
- * Sub Components
- * =======================================================*/
-
-function Sidebar({ me, pathname }: { me: User; pathname: string }) {
-  return (
-    <aside className="rounded-2xl border border-white/10 bg-white/5 shadow-[0_18px_45px_rgba(15,23,42,0.65)]">
-      <div className="relative overflow-hidden rounded-t-2xl border-b border-white/10 p-4">
-        <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cyan-500/20 blur-2xl" />
-        <div className="absolute -left-10 -bottom-10 h-28 w-28 rounded-full bg-indigo-500/20 blur-2xl" />
-        <div className="relative">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0">
-              <div className="text-xs text-white/60">Masuk sebagai</div>
-              <div className="truncate text-sm font-semibold text-white">
-                {me.full_name}
-              </div>
-              <div className="truncate text-xs text-white/60">
-                {me.email}
-              </div>
-            </div>
-            <RoleBadge role={me.role} />
-          </div>
-        </div>
-      </div>
-
-      <nav className="p-2">
-        {MENU_ITEMS.map((item) => (
-          <NavItem
-            key={item.href}
-            item={item}
-            active={pathname === item.href}
-          />
-        ))}
-      </nav>
-    </aside>
-  );
-}
-
-function NavItem({ item, active }: { item: MenuItem; active: boolean }) {
-  const Icon = item.icon;
-  return (
-    <Link
-      href={item.href}
-      className={`group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all ${
-        active
-          ? "bg-white/12 text-white shadow-[0_0_0_1px_rgba(255,255,255,0.10)_inset]"
-          : "text-white/70 hover:text-white hover:bg-white/5"
-      }`}
-    >
-      <Icon className="h-4 w-4 opacity-90" />
-      <span className="truncate">{item.label}</span>
-      {active && (
-        <span className="absolute inset-y-1 right-1 w-[3px] rounded-full bg-cyan-400" />
-      )}
-    </Link>
-  );
-}
-
-function TopBar({
-  activeLabel,
-  role,
-}: {
-  activeLabel: string;
-  role: Role;
-}) {
-  return (
-    <div className="sticky top-16 z-10 rounded-t-2xl border-b border-white/10 bg-slate-950/70 backdrop-blur">
-      <div className="flex items-center justify-between px-5 py-4">
-        <div className="flex items-center gap-2 text-sm text-white/60">
-          <span className="text-white/80">CMS</span>
-          <span className="text-white/30">/</span>
-          <span className="capitalize">{activeLabel}</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-white/60">
-          Role aktif:{" "}
-          <span className="capitalize text-white">{role}</span>
-          <BadgeCheck className="h-4 w-4 text-emerald-300" />
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
 
-function RoleBadge({ role }: { role: Role }) {
-  const map: Record<Role, { label: string; color: string }> = {
-    superadmin: { label: "Superadmin", color: "from-rose-400 to-pink-500" },
-    admin: { label: "Admin", color: "from-amber-400 to-orange-500" },
-    mentor: { label: "Mentor", color: "from-emerald-400 to-teal-500" },
-    peserta: { label: "Peserta", color: "from-slate-300 to-slate-400" },
-  };
+function Sidebar({ me }: { me: User }) {
+  const pathname = usePathname();
 
   return (
-    <span
-      className={`inline-flex items-center rounded-lg bg-gradient-to-r ${map[role].color} px-2 py-1 text-[10px] font-semibold text-slate-900`}
-    >
-      {map[role].label}
-    </span>
+    <aside className="hidden lg:flex w-64 flex-col border-r border-white/5 bg-[#0B0E14]">
+      <div className="h-16 flex items-center gap-3 px-6 border-b border-white/5">
+        <div className="relative h-6 w-6">
+            <Image src="/logo.png" alt="Logo" fill className="object-contain" />
+        </div>
+        <span className="font-bold text-white tracking-tight">TC Mudah CMS</span>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+        {MENU_ITEMS.map((item, i) => {
+          if (item.type === "divider") return <div key={i} className="my-4 h-px bg-white/5" />;
+          const Icon = item.icon as any;
+          const isActive = pathname === item.href;
+          
+          return (
+            <Link
+              key={item.href}
+              href={item.href!}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                isActive
+                  ? "bg-cyan-500/10 text-cyan-400"
+                  : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+              }`}
+            >
+              <Icon className={`w-4 h-4 ${isActive ? "text-cyan-400" : "text-slate-500"}`} />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="p-4 border-t border-white/5">
+        <div className="flex items-center gap-3 p-2 rounded-lg bg-white/[0.02] border border-white/5">
+           <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs">
+              {me.full_name[0]}
+           </div>
+           <div className="min-w-0 flex-1">
+              <div className="text-xs font-semibold text-white truncate">{me.full_name}</div>
+              <div className="text-[10px] text-slate-500 capitalize">{me.role}</div>
+           </div>
+        </div>
+      </div>
+    </aside>
   );
+}
+
+function TopBar({ me }: { me: User }) {
+    const pathname = usePathname();
+    const title = MENU_ITEMS.find(i => i.href === pathname)?.label || "Overview";
+
+    return (
+        <header className="h-16 flex items-center justify-between px-6 lg:px-8 border-b border-white/5 bg-[#0B0E14]/80 backdrop-blur sticky top-0 z-20">
+            <h2 className="text-lg font-semibold text-white">{title}</h2>
+            
+            <div className="flex items-center gap-4">
+                <div className="h-6 w-px bg-white/10 mx-1"></div>
+                <Link href="/" className="text-xs font-medium text-slate-400 hover:text-cyan-400 transition-colors">
+                    View Site
+                </Link>
+            </div>
+        </header>
+    )
 }
