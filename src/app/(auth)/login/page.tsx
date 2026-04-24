@@ -11,7 +11,7 @@ import Input from "@/components/ui/Input";
 import PasswordInput from "@/components/ui/PasswordInput";
 import { Button } from "@/components/ui/Button";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "/api";
+import { API_BASE } from "../../../../lib/api";
 
 async function apiLogin(payload: { email: string; password: string }) {
   const res = await fetch(`${API_BASE}/auth/login`, {
