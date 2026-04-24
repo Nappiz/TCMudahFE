@@ -4,6 +4,7 @@ import type {
   Mentor,
   Curriculum,
   ClassItem,
+  PackageItem,
   CheckoutInfo,
   Enrollment,
   ClassMaterial,
@@ -33,7 +34,7 @@ export async function api<T>(path: string): Promise<T> {
     try {
       const j = await res.json();
       if (j?.detail) msg = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail);
-    } catch {}
+    } catch { }
     throw new Error(msg);
   }
   return (await res.json()) as T;
@@ -45,6 +46,27 @@ export async function postJSON<T>(path: string, body: any): Promise<T> {
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error((await r.text()) || r.statusText);
+  return r.json() as Promise<T>;
+}
+
+
+export async function patchJSON<T>(path: string, body: any): Promise<T> {
+  const r = await fetch(`${API_BASE}${path}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error((await r.text()) || r.statusText);
+  return r.json() as Promise<T>;
+}
+
+export async function deleteJSON<T = { ok: boolean }>(path: string): Promise<T> {
+  const r = await fetch(`${API_BASE}${path}`, {
+    method: "DELETE",
+    credentials: "include",
   });
   if (!r.ok) throw new Error((await r.text()) || r.statusText);
   return r.json() as Promise<T>;
@@ -64,12 +86,13 @@ export async function uploadFile(file: File): Promise<string> {
 }
 
 export async function fetchCatalog(): Promise<Catalog> {
-  const [mentors, curriculum, classes] = await Promise.all([
+  const [mentors, curriculum, classes, packages] = await Promise.all([
     api<Mentor[]>("/mentors"),
     api<Curriculum[]>("/curriculum"),
     api<ClassItem[]>("/classes"),
+    api<PackageItem[]>("/packages"),
   ]);
-  return { mentors, curriculum, classes };
+  return { mentors, curriculum, classes, packages };
 }
 
 export async function fetchCheckoutInfo(): Promise<CheckoutInfo> {
@@ -140,8 +163,8 @@ export async function apiMaterialsByClass(classId: string): Promise<ClassMateria
   return json<ClassMaterial[]>(res);
 }
 
-export async function apiSetUserEnrollments(payload: { user_id: string; class_ids: string[] }) {
-  const res = await fetch(`${API_BASE}/admin/enrollments/set`, {
+export async function apiSetUserEnrollmentsByPackage(payload: { user_id: string; package_id: string }) {
+  const res = await fetch(`${API_BASE}/admin/enrollments/set-by-package`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },

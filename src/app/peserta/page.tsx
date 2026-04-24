@@ -109,7 +109,7 @@ export default function PesertaIndex() {
           ) : (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {myClasses.map((c, i) => (
-                   <Link href={`/peserta/kelas/${c.id}`} key={c.id}>
+                   <Link href={`/peserta/kelas/${encodeURIComponent(c.title.replace(/\s+/g, '-').toLowerCase())}`} key={c.id}>
                       <motion.div 
                          initial={{ opacity: 0, y: 20 }}
                          animate={{ opacity: 1, y: 0 }}

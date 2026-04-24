@@ -4,9 +4,9 @@ import { useParams } from "next/navigation";
 import KelasDetailPage from "./components/KelasDetailPage";
 
 export default function Page() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
 
-  if (!id) return null;
+  if (!slug) return null;
 
-  return <KelasDetailPage classId={id} />;
+  return <KelasDetailPage slug={slug} />;
 }

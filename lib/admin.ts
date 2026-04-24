@@ -72,8 +72,18 @@ export function updateUserRole(userId: string, role: Role) {
 
 /* ========= ENROLLMENTS / CLASSES ========= */
 
+export type PackageItem = {
+  id: string;
+  title: string;
+  class_ids: string[];
+};
+
 export function fetchAdminClasses() {
   return api<ClassItem[]>("/admin/classes");
+}
+
+export function fetchAdminPackages() {
+  return api<PackageItem[]>("/admin/packages");
 }
 
 export function fetchApprovedOrders() {

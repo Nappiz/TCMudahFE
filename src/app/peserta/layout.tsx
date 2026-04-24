@@ -78,7 +78,7 @@ export default function PesertaLayout({ children }: { children: React.ReactNode 
               ) : (
                  <ul className="space-y-1">
                     {classes.map((c: any) => {
-                       const href = `/peserta/kelas/${c.id}`;
+                       const href = `/peserta/kelas/${encodeURIComponent(c.title.replace(/\s+/g, '-').toLowerCase())}`;
                        const active = pathname?.startsWith(href);
                        return (
                           <li key={c.id}>

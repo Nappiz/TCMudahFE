@@ -19,6 +19,7 @@ export function OrdersTable({ rows, rupiah, onSetStatus }: Props) {
             <th className="px-4 py-3 text-left font-medium w-48">Waktu</th>
             <th className="px-4 py-3 text-left font-medium w-56">Pengirim</th>
             <th className="px-4 py-3 text-left font-medium w-36">Total</th>
+            <th className="px-4 py-3 text-left font-medium w-64">Item</th>
             <th className="px-4 py-3 text-left font-medium w-28">Bukti</th>
             <th className="px-4 py-3 text-left font-medium w-56">Catatan</th>
             <th className="px-4 py-3 text-left font-medium w-32">Status</th>
@@ -47,6 +48,25 @@ export function OrdersTable({ rows, rupiah, onSetStatus }: Props) {
               </td>
               <td className="px-4 py-3 text-white/80">
                 {rupiah(row.total)}
+              </td>
+              <td className="px-4 py-3">
+                {row.items && row.items.length > 0 ? (
+                  <ul className="list-none space-y-1 text-xs">
+                    {row.items.map((it: any, idx: number) => (
+                      <li key={idx}>
+                        <span className="text-white/90">{it.item_title || "-"}</span>
+                        <span className="text-white/50 ml-1">x{it.qty}</span>
+                        {it.item_type === "package" && (
+                          <span className="ml-1 inline-block rounded border border-cyan-500/30 bg-cyan-500/10 px-1 text-[9px] uppercase tracking-wider text-cyan-300">
+                            Paket
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span className="text-white/40">—</span>
+                )}
               </td>
               <td className="px-4 py-3">
                 {row.proof_url ? (
@@ -120,7 +140,7 @@ export function OrdersTable({ rows, rupiah, onSetStatus }: Props) {
           {rows.length === 0 && (
             <tr>
               <td
-                colSpan={7}
+                colSpan={8}
                 className="px-4 py-6 text-center text-white/60"
               >
                 Tidak ada data.

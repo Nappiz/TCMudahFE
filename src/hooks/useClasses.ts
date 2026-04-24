@@ -3,10 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchMe, type User } from "../../lib/admin";
 import { fetchMentors, type Mentor } from "../../lib/mentors";
-import {
-  fetchCurriculum,
-  type CurriculumItem,
-} from "../../lib/curriculum";
+import { fetchCurriculum, type CurriculumItem } from "../../lib/curriculum";
+
 import {
   fetchClasses,
   createClassItem,
@@ -14,17 +12,30 @@ import {
   deleteClassItem,
   patchClassVisibility,
   type ClassItem,
-  type ClassForm,
 } from "../../lib/classes";
+
+import {
+  fetchPackages,
+  createPackageItem,
+  updatePackageItem,
+  deletePackageItem,
+  patchPackageVisibility,
+  type PackageItem,
+} from "../../lib/packages";
+
+import type { UnifiedForm } from "../app/cms/classes/components/ClassesFormModal";
 
 export function useClasses() {
   const [me, setMe] = useState<User | null>(null);
+
   const [classes, setClasses] = useState<ClassItem[]>([]);
+  const [packages, setPackages] = useState<PackageItem[]>([]);
+
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [curriculum, setCurriculum] = useState<CurriculumItem[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -38,25 +49,26 @@ export function useClasses() {
         if (cancel) return;
         setMe(m);
 
-        const [cls, ments, curs] = await Promise.all([
+        const [cls, pkgs, ments, curs] = await Promise.all([
           fetchClasses(),
+          fetchPackages(),
           fetchMentors(),
           fetchCurriculum(),
         ]);
+
         if (cancel) return;
         setClasses(cls);
+        setPackages(pkgs);
         setMentors(ments);
         setCurriculum(curs);
       } catch (e: any) {
-        if (!cancel) setErr(e?.message ?? "Gagal memuat.");
+        if (!cancel) setErr(e?.message ?? "Gagal memuat data katalog.");
       } finally {
         if (!cancel) setLoading(false);
       }
     })();
 
-    return () => {
-      cancel = true;
-    };
+    return () => { cancel = true; };
   }, []);
 
   const canWrite = useMemo(
@@ -76,7 +88,7 @@ export function useClasses() {
     return m;
   }, [curriculum]);
 
-  const filtered = useMemo(() => {
+  const filteredClasses = useMemo(() => {
     const s = search.trim().toLowerCase();
     if (!s) return classes;
 
@@ -85,12 +97,7 @@ export function useClasses() {
         .map((id) => idxMentor.get(id)?.name?.toLowerCase() ?? "")
         .join(" ");
       const curs = (k.curriculum_ids || [])
-        .map(
-          (id) =>
-            idxCurriculum.get(id)?.name?.toLowerCase() ??
-            idxCurriculum.get(id)?.code?.toLowerCase() ??
-            "",
-        )
+        .map((id) => idxCurriculum.get(id)?.name?.toLowerCase() ?? idxCurriculum.get(id)?.code?.toLowerCase() ?? "")
         .join(" ");
 
       return (
@@ -102,6 +109,23 @@ export function useClasses() {
     });
   }, [classes, search, idxMentor, idxCurriculum]);
 
+  const filteredPackages = useMemo(() => {
+    const s = search.trim().toLowerCase();
+    if (!s) return packages;
+
+    return packages.filter((p) => {
+      const classNames = (p.class_ids || [])
+        .map(cid => classes.find(c => c.id === cid)?.title?.toLowerCase() ?? "")
+        .join(" ");
+
+      return (
+        p.title.toLowerCase().includes(s) ||
+        p.description.toLowerCase().includes(s) ||
+        classNames.includes(s)
+      );
+    });
+  }, [packages, classes, search]);
+
   const rupiah = (n: number) =>
     new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -109,39 +133,61 @@ export function useClasses() {
       maximumFractionDigits: 0,
     }).format(n);
 
-  async function createItem(form: ClassForm): Promise<ClassItem> {
-    const created = await createClassItem(form);
-    setClasses((prev) => [created, ...prev]);
-    return created;
+
+  async function createItem(form: UnifiedForm, type: "class" | "package") {
+    if (type === "class") {
+      const payload = { ...form, mentor_ids: form.mentor_ids, curriculum_ids: form.curriculum_ids };
+      const created = await createClassItem(payload as any);
+      setClasses((prev) => [created, ...prev]);
+      return created;
+    } else {
+      const payload = { title: form.title, description: form.description, price: form.price, visible: form.visible, class_ids: form.class_ids };
+      const created = await createPackageItem(payload as any);
+      setPackages((prev) => [created, ...prev]);
+      return created;
+    }
   }
 
-  async function updateItem(
-    id: string,
-    form: ClassForm,
-  ): Promise<ClassItem> {
-    const updated = await updateClassItem(id, form);
-    setClasses((prev) =>
-      prev.map((i) => (i.id === updated.id ? updated : i)),
-    );
-    return updated;
+  async function updateItem(id: string, form: UnifiedForm, type: "class" | "package") {
+    if (type === "class") {
+      const payload = { ...form, mentor_ids: form.mentor_ids, curriculum_ids: form.curriculum_ids };
+      const updated = await updateClassItem(id, payload as any);
+      setClasses((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      return updated;
+    } else {
+      const payload = { title: form.title, description: form.description, price: form.price, visible: form.visible, class_ids: form.class_ids };
+      const updated = await updatePackageItem(id, payload as any);
+      setPackages((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      return updated;
+    }
   }
 
-  async function removeItem(id: string): Promise<void> {
-    await deleteClassItem(id);
-    setClasses((prev) => prev.filter((x) => x.id !== id));
+  async function removeItem(id: string, type: "class" | "package") {
+    if (type === "class") {
+      await deleteClassItem(id);
+      setClasses((prev) => prev.filter((x) => x.id !== id));
+    } else {
+      await deletePackageItem(id);
+      setPackages((prev) => prev.filter((x) => x.id !== id));
+    }
   }
 
-  async function toggleVisible(item: ClassItem): Promise<ClassItem> {
-    const updated = await patchClassVisibility(item.id, !item.visible);
-    setClasses((prev) =>
-      prev.map((x) => (x.id === updated.id ? updated : x)),
-    );
-    return updated;
+  async function toggleVisible(item: any, type: "class" | "package") {
+    if (type === "class") {
+      const updated = await patchClassVisibility(item.id, !item.visible);
+      setClasses((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+      return updated;
+    } else {
+      const updated = await patchPackageVisibility(item.id, !item.visible);
+      setPackages((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+      return updated;
+    }
   }
 
   return {
     me,
     classes,
+    packages,
     mentors,
     curriculum,
     loading,
@@ -149,7 +195,8 @@ export function useClasses() {
     canWrite,
     search,
     setSearch,
-    filtered,
+    filteredClasses,
+    filteredPackages,
     idxMentor,
     idxCurriculum,
     rupiah,

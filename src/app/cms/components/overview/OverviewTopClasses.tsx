@@ -20,14 +20,16 @@ export default function OverviewTopClasses({
     orders.forEach(o => {
         if (o.status !== 'approved') return;        
         (o.items || []).forEach((item: any) => {
-            const cid = item.class_id;
+            const cid = item.class_id || item.item_id;
+            if (!cid) return;
+
             if (!salesMap[cid]) {
-                const cls = classes.find(c => c.id === cid);
+                const cls = classes.find((c) => c.id === cid);
                 salesMap[cid] = {
                     id: cid,
-                    title: cls ? cls.title : "Unknown Class",
+                    title: item.item_title || (cls ? cls.title : "Paket / Unknown"),
                     count: 0,
-                    revenue: 0
+                    revenue: 0,
                 };
             }
             salesMap[cid].count += item.qty;

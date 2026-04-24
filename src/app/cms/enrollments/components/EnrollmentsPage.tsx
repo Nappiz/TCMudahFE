@@ -14,6 +14,7 @@ export default function EnrollmentsPage() {
     error,
     users,
     classes,
+    packages,
     filteredUsers,
     selUser,
     selectedUserId,
@@ -24,6 +25,7 @@ export default function EnrollmentsPage() {
     setQ,
     setSelectedUserId,
     toggleClass,
+    selectAllInPackage,
     save,
     reload,
     modalOpen,
@@ -74,11 +76,13 @@ export default function EnrollmentsPage() {
 
         <ClassesSection
           classes={classes}
+          packages={packages}
           selUser={selUser}
           activeClassIds={activeClassIds}
           hasChanges={hasChanges}
           saving={saving}
           onToggleClass={toggleClass}
+          onSelectPackage={selectAllInPackage}
           onSave={save}
         />
       </div>

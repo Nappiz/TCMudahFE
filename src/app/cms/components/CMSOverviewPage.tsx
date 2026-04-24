@@ -8,6 +8,8 @@ import OverviewKpiUtama from "./overview/OverviewKpiUtama";
 import OverviewOrdersAndPending from "./overview/OverviewOrdersAndPending";
 import OverviewActivityFeed from "./overview/OverviewActivityFeed";
 import OverviewTopClasses from "./overview/OverviewTopClasses";
+import OverviewRevenueBreakdown from "./overview/OverviewRevenueBreakdown";
+import OverviewBusinessMetrics from "./overview/OverviewBusinessMetrics";
 import { Loader2 } from "lucide-react";
 
 export default function CMSOverviewPage() {
@@ -41,6 +43,8 @@ export default function CMSOverviewPage() {
           </div>
 
           <div className="lg:col-span-1 space-y-6">
+              <OverviewRevenueBreakdown orders={orders} />
+              <OverviewBusinessMetrics orders={orders} />
               <OverviewActivityFeed orders={orders} />
               
               <div className="rounded-2xl border border-white/5 bg-gradient-to-b from-slate-800 to-slate-900 p-5 text-center">

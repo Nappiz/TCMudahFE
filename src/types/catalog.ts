@@ -15,12 +15,12 @@ export type Testimonial = {
   created_at?: string;
 };
 
-export type Mentor = { 
-  id: string; 
-  name: string; 
-  angkatan: number; 
-  visible?: boolean; 
-  achievements?: string[] 
+export type Mentor = {
+  id: string;
+  name: string;
+  angkatan: number;
+  visible?: boolean;
+  achievements?: string[]
 };
 
 export type Curriculum = { id: string; code: string; name: string; sem: 1 | 2 };
@@ -37,9 +37,19 @@ export type ClassItem = {
 
 export type Catalog = {
   mentors: Mentor[];
+  packages: PackageItem[];
   curriculum: Curriculum[];
   classes: ClassItem[];
 };
+
+export interface PackageItem {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  class_ids: string[];
+  visible: boolean;
+}
 
 export type CartLine = { id: string; qty: number };
 export type Cart = Record<string, number>;

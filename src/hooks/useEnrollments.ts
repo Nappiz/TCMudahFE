@@ -2,11 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   fetchAdminUsers,
   fetchAdminClasses,
+  fetchAdminPackages,
   fetchApprovedOrders,
   fetchUserEnrollments,
   setUserEnrollments,
   User,
   ClassItem,
+  PackageItem,
   Enrollment,
 } from "../../lib/admin";
 
@@ -18,6 +20,7 @@ export function useEnrollments() {
 
   const [users, setUsers] = useState<User[]>([]);
   const [classes, setClasses] = useState<ClassItem[]>([]);
+  const [packages, setPackages] = useState<PackageItem[]>([]);
 
   const [q, setQ] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string>("");
@@ -45,9 +48,10 @@ export function useEnrollments() {
     setLoading(true);
     setError(null);
     try {
-      const [u, c, orders] = await Promise.all([
+      const [u, c, p, orders] = await Promise.all([
         fetchAdminUsers(),
         fetchAdminClasses(),
+        fetchAdminPackages(),
         fetchApprovedOrders(),
       ]);
 
@@ -58,6 +62,7 @@ export function useEnrollments() {
 
       setUsers(onlyApprovedParticipants);
       setClasses(c);
+      setPackages(p);
 
       if (!selectedUserId && onlyApprovedParticipants.length > 0) {
         setSelectedUserId(onlyApprovedParticipants[0].id);
@@ -66,6 +71,7 @@ export function useEnrollments() {
       setError(e?.message ?? "Gagal memuat data");
       setUsers([]);
       setClasses([]);
+      setPackages([]);
     } finally {
       setLoading(false);
     }
@@ -119,6 +125,15 @@ export function useEnrollments() {
     });
     setHasChanges(true);
   };
+  
+  const selectAllInPackage = (pkg: PackageItem) => {
+    setActiveClassIds((prev) => {
+      const next = new Set(prev);
+      pkg.class_ids.forEach((cid) => next.add(cid));
+      return next;
+    });
+    setHasChanges(true);
+  };
 
   const save = async () => {
     if (!selectedUserId) return;
@@ -146,6 +161,7 @@ export function useEnrollments() {
     error,
     users,
     classes,
+    packages,
     filteredUsers,
     selUser,
     selectedUserId,
@@ -156,6 +172,7 @@ export function useEnrollments() {
     setQ,
     setSelectedUserId,
     toggleClass,
+    selectAllInPackage,
     save,
     reload,
     modalOpen,

@@ -3,7 +3,10 @@ import { api } from "./admin";
 export type OrderStatus = "pending" | "approved" | "rejected" | "expired";
 
 export type OrderItem = {
-  class_id: string;
+  class_id?: string;
+  item_id?: string;
+  item_type?: "class" | "package";
+  item_title?: string;
   qty: number;
   price: number;
 };
