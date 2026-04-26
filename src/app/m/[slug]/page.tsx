@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 async function resolveShortlink(slug: string): Promise<string | null> {
   try {
     const res = await fetch(
-      `${API_BASE}/shortlinks/${encodeURIComponent(slug)}`,
+      `${BACKEND_URL}/shortlinks/${encodeURIComponent(slug)}`,
       {
         cache: "no-store",
       }
@@ -21,9 +21,10 @@ async function resolveShortlink(slug: string): Promise<string | null> {
 export default async function Page({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const target = await resolveShortlink(params.slug);
+  const { slug } = await params;
+  const target = await resolveShortlink(slug);
 
   if (!target) {
     // fallback sederhana kalau slug tidak ditemukan
