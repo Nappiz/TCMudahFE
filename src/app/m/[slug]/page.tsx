@@ -36,7 +36,7 @@ export default async function Page({
               Shortlink tidak ditemukan
             </div>
             <p className="mt-2 text-xs text-white/60">
-              Pastikan URL /m/{params.slug} sudah benar atau hubungi admin.
+              Pastikan URL /m/{slug} sudah benar atau hubungi admin.
             </p>
           </div>
         </body>
