@@ -5,7 +5,7 @@ import type { AdminOrder } from "@/types/catalog";
 import { GlassCard } from "./overview-ui";
 import { PieChart, TrendingUp, Package, BookOpen } from "lucide-react";
 
-export default function OverviewRevenueBreakdown({ orders }: { orders: AdminOrder[] | null }) {
+export default function OverviewRevenueBreakdown({ orders, startDate, endDate }: { orders: AdminOrder[] | null; startDate?: string; endDate?: string; }) {
   const { classRev, packageRev, totalRev } = useMemo(() => {
     if (!orders) return { classRev: 0, packageRev: 0, totalRev: 0 };
     
@@ -14,6 +14,11 @@ export default function OverviewRevenueBreakdown({ orders }: { orders: AdminOrde
     
     orders.forEach(o => {
         if (o.status !== 'approved') return;
+
+        const d = new Date(o.created_at);
+        if (startDate && new Date(startDate) > d) return;
+        if (endDate && new Date(endDate + "T23:59:59") < d) return;
+
         (o.items || []).forEach((item: any) => {
              const rev = item.price * item.qty;
              if (item.item_type === 'package') p += rev;
@@ -22,7 +27,7 @@ export default function OverviewRevenueBreakdown({ orders }: { orders: AdminOrde
     });
     
     return { classRev: c, packageRev: p, totalRev: c + p };
-  }, [orders]);
+  }, [orders, startDate, endDate]);
 
   const classPct = totalRev > 0 ? Math.round((classRev / totalRev) * 100) : 0;
   const packagePct = totalRev > 0 ? Math.round((packageRev / totalRev) * 100) : 0;

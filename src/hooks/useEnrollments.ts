@@ -64,9 +64,12 @@ export function useEnrollments() {
       setClasses(c);
       setPackages(p);
 
-      if (!selectedUserId && onlyApprovedParticipants.length > 0) {
-        setSelectedUserId(onlyApprovedParticipants[0].id);
-      }
+      setSelectedUserId((prev) => {
+        if (!prev && onlyApprovedParticipants.length > 0) {
+          return onlyApprovedParticipants[0].id;
+        }
+        return prev;
+      });
     } catch (e: any) {
       setError(e?.message ?? "Gagal memuat data");
       setUsers([]);
@@ -75,7 +78,7 @@ export function useEnrollments() {
     } finally {
       setLoading(false);
     }
-  }, [selectedUserId]);
+  }, []);
 
   useEffect(() => {
     reload();

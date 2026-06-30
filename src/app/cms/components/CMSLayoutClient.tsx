@@ -168,6 +168,7 @@ function NavLinks({ pathname }: { pathname: string }) {
                     <Link
                     key={item.href}
                     href={item.href!}
+                    prefetch={true}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                         isActive
                         ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/10"
