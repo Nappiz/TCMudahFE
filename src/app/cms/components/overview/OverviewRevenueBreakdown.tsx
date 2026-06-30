@@ -15,6 +15,7 @@ export default function OverviewRevenueBreakdown({ orders, startDate, endDate }:
     orders.forEach(o => {
         if (o.status !== 'approved') return;
 
+        if (!o.created_at) return;
         const d = new Date(o.created_at);
         if (startDate && new Date(startDate) > d) return;
         if (endDate && new Date(endDate + "T23:59:59") < d) return;

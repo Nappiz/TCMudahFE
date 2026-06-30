@@ -13,6 +13,7 @@ export default function OverviewKpiUtama({ stats, loading, orders, startDate, en
     if (!orders) return 0;
     return orders.reduce((sum, o) => {
       if (o.status !== 'approved') return sum;
+      if (!o.created_at) return sum;
       const d = new Date(o.created_at);
       if (startDate && new Date(startDate) > d) return sum;
       if (endDate && new Date(endDate + "T23:59:59") < d) return sum;
