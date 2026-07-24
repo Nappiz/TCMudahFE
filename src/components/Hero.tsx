@@ -175,7 +175,7 @@ export default function Hero() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
               </span>
-              TC Mudah Batch 7
+              TC Mudah Batch 8
             </motion.div>
 
             <h1 className="text-5xl sm:text-4xl md:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-6">

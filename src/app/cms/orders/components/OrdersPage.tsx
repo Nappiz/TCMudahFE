@@ -4,8 +4,10 @@ import { useOrders } from "@/hooks/useOrders";
 import { OrdersHeader } from "./OrdersHeader";
 import { OrdersTable } from "./OrdersTable";
 import type { OrderStatus } from "../../../../../lib/orders";
+import { useGlobalError } from "@/components/providers/ErrorProvider";
 
 export default function OrdersPage() {
+  const { showError } = useGlobalError();
   const { filtered, search, setSearch, err, loading, rupiah, setStatus } =
     useOrders();
 
@@ -16,7 +18,7 @@ export default function OrdersPage() {
     try {
       await setStatus(id, status);
     } catch (e: any) {
-      alert(e?.message ?? "Gagal memperbarui status");
+      showError(e?.message ?? "Gagal memperbarui status");
     }
   }
 

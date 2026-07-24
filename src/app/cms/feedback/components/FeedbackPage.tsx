@@ -3,8 +3,10 @@
 import { useFeedback } from "@/hooks/useFeedback";
 import { FeedbackHeader } from "./FeedbackHeader";
 import { FeedbackList } from "./FeedbackList";
+import { useGlobalError } from "@/components/providers/ErrorProvider";
 
 export default function FeedbackPage() {
+  const { showError } = useGlobalError();
   const {
     classes,
     selectedClassId,
@@ -22,7 +24,7 @@ export default function FeedbackPage() {
     try {
       await deleteById(id);
     } catch (e: any) {
-      alert(e?.message || "Gagal menghapus.");
+      showError(e?.message || "Gagal menghapus.");
     }
   }
 

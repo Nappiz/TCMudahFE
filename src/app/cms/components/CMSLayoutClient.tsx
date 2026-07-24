@@ -7,7 +7,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   BadgeCheck, Home, Users, BookOpenText, MessageSquare, 
-  GraduationCap, FileBox, FileVideo, Link2, Search, Bell, Menu, X 
+  GraduationCap, FileBox, FileVideo, Link2, Search, Bell, Menu, X, Layers
 } from "lucide-react";
 import { apiMe } from "../../../../lib/api";
 
@@ -18,6 +18,7 @@ const MENU_ITEMS = [
   { href: "/cms", label: "Overview", icon: Home },
   { href: "/cms/orders", label: "Orders", icon: BadgeCheck },
   { type: "divider" },
+  { href: "/cms/batches", label: "Batches", icon: Layers },
   { href: "/cms/classes", label: "Kelas", icon: GraduationCap },
   { href: "/cms/curriculum", label: "Kurikulum", icon: BookOpenText },
   { href: "/cms/materials", label: "Materi Video", icon: FileVideo },

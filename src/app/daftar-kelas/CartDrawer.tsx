@@ -8,6 +8,7 @@ import { fetchCheckoutInfo, postJSON, uploadFile } from "../../../lib/api";
 import { CartLine, ClassItem, CheckoutInfo } from "@/types/catalog";
 import CheckoutModal from "./CheckoutModal";
 import SuccessModal from "./SuccessModal";
+import { useGlobalError } from "@/components/providers/ErrorProvider";
 
 export default function CartDrawer({
   openButtonSelector,
@@ -28,6 +29,7 @@ export default function CartDrawer({
   onClear: () => void;
   total: number;
 }) {
+  const { showError } = useGlobalError();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export default function CartDrawer({
       setInfo(i);
       setCheckoutOpen(true);
     } catch (e: any) {
-      alert(e?.message || "Gagal memuat info checkout");
+      showError(e?.message || "Gagal memuat info checkout");
     }
   }
 

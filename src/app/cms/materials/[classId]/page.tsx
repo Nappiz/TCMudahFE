@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { toEmbedUrl } from "../../../../../lib/embed";
+import { useGlobalError } from "@/components/providers/ErrorProvider";
 
 type Role = "superadmin" | "admin" | "mentor" | "peserta";
 type Me = { id: string; email: string; full_name: string; role: Role };
@@ -60,6 +61,7 @@ export default function CMSMaterialsByClassPage() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const { showError } = useGlobalError();
 
   // UI state
   const [q, setQ] = useState("");
@@ -127,8 +129,8 @@ export default function CMSMaterialsByClassPage() {
 
   async function save() {
     if (!canWrite) return;
-    if (!form.title.trim()) return alert("Judul wajib diisi.");
-    if (!form.url.trim()) return alert("URL wajib diisi.");
+    if (!form.title.trim()) return showError("Judul wajib diisi.");
+    if (!form.url.trim()) return showError("URL wajib diisi.");
 
     setSaving(true);
     try {
@@ -146,7 +148,7 @@ export default function CMSMaterialsByClassPage() {
       setMaterials((prev) => [created, ...prev]);
       setModalOpen(false);
     } catch (e: any) {
-      alert(e?.message ?? "Gagal menyimpan materi.");
+      showError(e?.message ?? "Gagal menyimpan materi.");
     } finally {
       setSaving(false);
     }
@@ -161,7 +163,7 @@ export default function CMSMaterialsByClassPage() {
       });
       setMaterials((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
     } catch (e: any) {
-      alert(e?.message ?? "Gagal memperbarui visibilitas.");
+      showError(e?.message ?? "Gagal memperbarui visibilitas.");
     }
   }
 
@@ -172,7 +174,7 @@ export default function CMSMaterialsByClassPage() {
       await api(`/admin/materials/${it.id}`, { method: "DELETE" });
       setMaterials((prev) => prev.filter((x) => x.id !== it.id));
     } catch (e: any) {
-      alert(e?.message ?? "Gagal menghapus materi.");
+      showError(e?.message ?? "Gagal menghapus materi.");
     }
   }
 

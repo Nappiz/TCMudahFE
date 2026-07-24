@@ -5,10 +5,12 @@ import { ClassesHeader } from "./ClassesHeader";
 import { ClassesTable } from "./ClassesTable";
 import { ClassesListMobile } from "./ClassesListMobile";
 import { ClassesFormModal, UnifiedForm } from "./ClassesFormModal";
+import { useGlobalError } from "@/components/providers/ErrorProvider";
 
 import { useClasses } from "@/hooks/useClasses";
 
 export default function ClassesPage() {
+  const { showError } = useGlobalError();
   const {
     mentors,
     curriculum,
@@ -78,15 +80,15 @@ export default function ClassesPage() {
   async function handleSave() {
     if (!canWrite) return;
     if (!form.title.trim()) {
-      alert("Judul wajib diisi.");
+      showError("Judul wajib diisi.");
       return;
     }
 
     if (activeTab === "class") {
-      if (!form.mentor_ids.length) { alert("Pilih minimal 1 mentor."); return; }
-      if (!form.curriculum_ids.length) { alert("Pilih minimal 1 kurikulum."); return; }
+      if (!form.mentor_ids.length) { showError("Pilih minimal 1 mentor."); return; }
+      if (!form.curriculum_ids.length) { showError("Pilih minimal 1 kurikulum."); return; }
     } else {
-      if (!form.class_ids.length) { alert("Pilih minimal 1 kelas untuk paket ini."); return; }
+      if (!form.class_ids.length) { showError("Pilih minimal 1 kelas untuk paket ini."); return; }
     }
 
     setSaving(true);
@@ -99,7 +101,7 @@ export default function ClassesPage() {
       }
       setModalOpen(false);
     } catch (e: any) {
-      alert(e?.message ?? "Gagal menyimpan.");
+      showError(e?.message ?? "Gagal menyimpan.");
     } finally {
       setSaving(false);
     }
@@ -111,7 +113,7 @@ export default function ClassesPage() {
     try {
       await removeItem(it.id, activeTab);
     } catch (e: any) {
-      alert(e?.message ?? "Gagal menghapus.");
+      showError(e?.message ?? "Gagal menghapus.");
     }
   }
 
@@ -120,7 +122,7 @@ export default function ClassesPage() {
     try {
       await toggleVisible(it, activeTab);
     } catch (e: any) {
-      alert(e?.message ?? "Gagal memperbarui visibilitas.");
+      showError(e?.message ?? "Gagal memperbarui visibilitas.");
     }
   }
 

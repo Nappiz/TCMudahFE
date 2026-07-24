@@ -11,10 +11,16 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.ico" },
 };
 
+import { ErrorProvider } from "@/components/providers/ErrorProvider";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" className="scroll-smooth">
-      <body className={`${inter.className} bg-slate-950`}>{children}</body>
+      <body className={`${inter.className} bg-slate-950`}>
+        <ErrorProvider>
+          {children}
+        </ErrorProvider>
+      </body>
     </html>
   );
 }
