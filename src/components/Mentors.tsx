@@ -13,7 +13,7 @@ export default async function Mentors() {
   let data: Mentor[] | null = null;
   try {
     const res = await fetch(`${API_BASE}/mentors`, { 
-        next: { revalidate: 3600 } 
+        next: { revalidate: 0 } 
     });
     const json = await res.json();
     data = Array.isArray(json) ? json : [];

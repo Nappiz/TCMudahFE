@@ -6,7 +6,7 @@ export default async function Testimonials() {
   let items: any[] = [];
   try {
     const res = await fetch(`${API_BASE}/testimonials`, {
-      next: { revalidate: 3600 },
+      next: { revalidate: 0 },
       headers: { "Content-Type": "application/json" },
     });
     if (res.ok) {

@@ -14,7 +14,7 @@ export default async function ProgramGrid() {
   let items: Item[] = [];
   try {
     const res = await fetch(`${API_BASE}/curriculum`, {
-      next: { revalidate: 3600 },
+      next: { revalidate: 0 },
       headers: { "Content-Type": "application/json" },
     });
     if (res.ok) {
