@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import imageCompression from "browser-image-compression";
 import { AnimatePresence, motion } from "framer-motion";
 import { Minus, Plus, ShoppingBag, X, ArrowRight, Trash2 } from "lucide-react";
 import { rupiah } from "../../../lib/format";
@@ -81,7 +82,13 @@ export default function CartDrawer({
     setSubmitting(true);
     setSubmitErr(null);
     try {
-      const url = await uploadFile(file);
+      const options = {
+        maxSizeMB: 0.3,
+        maxWidthOrHeight: 1200,
+        useWebWorker: true,
+      };
+      const compressedFile = await imageCompression(file, options);
+      const url = await uploadFile(compressedFile);
 
       const items = full.map(({ line, item }) => ({
         item_id: line.id,
