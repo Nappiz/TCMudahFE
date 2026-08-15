@@ -86,6 +86,7 @@ export default function Navbar() {
 
   const isStaff = !!user && user.role !== "peserta";
   const isPesertaApproved = !!user && user.role === "peserta" && hasAccess;
+  const canAccessDashboard = isPesertaApproved || isStaff;
 
   async function onLogout() {
     try {
@@ -150,7 +151,7 @@ export default function Navbar() {
            ) : (
              <div className="flex items-center gap-2">
                 {isStaff && <Link href="/cms"><button className="cursor-pointer px-4 py-2 text-sm font-medium text-white/80 hover:bg-white/10 rounded-full">CMS</button></Link>}
-                {isPesertaApproved && <Link href="/peserta"><button className="cursor-pointer px-4 py-2 text-sm font-medium text-white/80 hover:bg-white/10 rounded-full">Dashboard</button></Link>}
+                {canAccessDashboard && <Link href="/peserta"><button className="cursor-pointer px-4 py-2 text-sm font-medium text-white/80 hover:bg-white/10 rounded-full">Dashboard</button></Link>}
                 <button 
                   onClick={onLogout} 
                   disabled={loggingOut}
@@ -191,7 +192,15 @@ export default function Navbar() {
              <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="p-3 text-center bg-white text-slate-950 rounded-xl font-semibold">Daftar</Link>
            </div>
          ) : (
-            <button onClick={onLogout} className="p-3 text-center bg-red-500/10 text-red-400 rounded-xl">Logout</button>
+           <div className="flex flex-col gap-2">
+             {isStaff && (
+               <Link href="/cms" onClick={() => setMobileMenuOpen(false)} className="p-3 text-center bg-white/5 text-white rounded-xl hover:bg-white/10 transition-colors">CMS</Link>
+             )}
+             {canAccessDashboard && (
+               <Link href="/peserta" onClick={() => setMobileMenuOpen(false)} className="p-3 text-center bg-cyan-900/30 text-cyan-400 rounded-xl hover:bg-cyan-900/50 transition-colors">Dashboard</Link>
+             )}
+             <button onClick={onLogout} className="p-3 text-center bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500/20 transition-colors">Logout</button>
+           </div>
          )}
       </div>
     </div>

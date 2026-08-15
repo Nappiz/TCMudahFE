@@ -21,7 +21,7 @@ async function apiLogin(payload: { email: string; password: string }) {
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    let msg = "Gagal masuk.";
+    let msg = "Email atau password salah.";
     try {
       const j = await res.json();
       if (j?.detail) msg = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail);
@@ -49,7 +49,7 @@ export default function LoginPage() {
       await apiLogin({ email, password });
       router.replace("/");
     } catch (error: any) {
-      setErr(error?.message ?? "Gagal masuk. Periksa kembali email dan password Anda.");
+      setErr(error?.message ?? "Email atau password salah.");
     } finally {
       setLoading(false);
     }
