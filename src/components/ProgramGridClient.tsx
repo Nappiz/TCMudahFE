@@ -1,6 +1,6 @@
 "use client";
-import { motion } from "framer-motion";
 import { Terminal, Database, Calculator, Code, Braces, Layers } from "lucide-react";
+import FadeIn from "./ui/FadeIn";
 
 type Item = {
   id: string;
@@ -44,39 +44,36 @@ export default function ProgramGridClient({ initialItems }: { initialItems: Item
           )}
 
           {items.map((x, i) => (
-             <motion.div
-               key={x.id}
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ delay: i * 0.05 }}
-               className="group relative h-full rounded-2xl bg-slate-900 border border-white/5 p-6 hover:border-white/10 transition-all duration-300 hover:-translate-y-1"
-             >
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
-                
-                <div className="relative z-10 h-full flex flex-col">
-                    <div className="flex items-start justify-between mb-6">
-                        <div className="p-3 rounded-xl bg-slate-800 border border-white/5 group-hover:scale-110 transition-transform duration-300">
-                           {getIcon(x.name)}
-                        </div>
-                        <span className={`px-3 py-1 text-[10px] font-bold rounded-full border ${x.sem === 1 ? 'border-cyan-500/30 bg-cyan-950/30 text-cyan-400' : 'border-purple-500/30 bg-purple-950/30 text-purple-400'}`}>
-                           SEMESTER {x.sem}
-                        </span>
-                    </div>
+             <FadeIn key={x.id} delay={i * 50}>
+                <div
+                  className="group relative h-full rounded-2xl bg-slate-900 border border-white/5 p-6 hover:border-white/10 transition-all duration-300 hover:-translate-y-1"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
+                  
+                  <div className="relative z-10 h-full flex flex-col">
+                      <div className="flex items-start justify-between mb-6">
+                          <div className="p-3 rounded-xl bg-slate-800 border border-white/5 group-hover:scale-110 transition-transform duration-300">
+                             {getIcon(x.name)}
+                          </div>
+                          <span className={`px-3 py-1 text-[10px] font-bold rounded-full border ${x.sem === 1 ? 'border-cyan-500/30 bg-cyan-950/30 text-cyan-400' : 'border-purple-500/30 bg-purple-950/30 text-purple-400'}`}>
+                             SEMESTER {x.sem}
+                          </span>
+                      </div>
 
-                    <div className="mb-2 font-mono text-xs text-slate-500">{x.code}</div>
-                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-200 transition-colors">{x.name}</h3>
-                    <p className="text-sm text-slate-400 leading-relaxed mb-6">{x.blurb}</p>
+                      <div className="mb-2 font-mono text-xs text-slate-500">{x.code}</div>
+                      <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-200 transition-colors">{x.name}</h3>
+                      <p className="text-sm text-slate-400 leading-relaxed mb-6">{x.blurb}</p>
 
-                    <div className="mt-auto pt-4 border-t border-white/5 flex flex-wrap gap-2">
-                       {['Modul', 'Video', 'Latihan'].map(tag => (
-                         <span key={tag} className="text-[10px] px-2 py-1 rounded bg-white/5 text-slate-400 border border-white/5">
-                           {tag}
-                         </span>
-                       ))}
-                    </div>
+                      <div className="mt-auto pt-4 border-t border-white/5 flex flex-wrap gap-2">
+                         {['Modul', 'Video', 'Latihan'].map(tag => (
+                           <span key={tag} className="text-[10px] px-2 py-1 rounded bg-white/5 text-slate-400 border border-white/5">
+                             {tag}
+                           </span>
+                         ))}
+                      </div>
+                  </div>
                 </div>
-             </motion.div>
+             </FadeIn>
           ))}
         </div>
       </div>

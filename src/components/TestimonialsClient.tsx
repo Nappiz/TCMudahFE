@@ -6,7 +6,7 @@ const TestimonialCard = ({ item }: { item: any }) => (
     relative flex-shrink-0 
     w-[280px] md:w-[350px] 
     rounded-2xl border border-white/10 
-    bg-slate-900/60 backdrop-blur-md 
+    bg-slate-900/60 
     p-5 md:p-6 
     transition-colors hover:border-cyan-500/30 hover:bg-slate-800/80
   ">
@@ -63,7 +63,7 @@ export default function TestimonialsClient({ items }: { items: any[] }) {
           </div>
        </div>
 
-       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
+       <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.03] pointer-events-none mix-blend-overlay"></div>
     </section>
   );
 }

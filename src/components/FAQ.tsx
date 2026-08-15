@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, MessageCircle } from "lucide-react";
 
 const faqs = [
@@ -43,9 +42,8 @@ export default function FAQ() {
               {faqs.map((item, idx) => {
                 const isOpen = open === idx;
                 return (
-                  <motion.div 
+                  <div 
                     key={idx}
-                    initial={false}
                     className={`border rounded-2xl transition-all duration-300 ${isOpen ? "border-cyan-500/50 bg-slate-900/80" : "border-white/10 bg-slate-900/30 hover:border-white/20"}`}
                   >
                     <button
@@ -59,21 +57,18 @@ export default function FAQ() {
                         {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                       </span>
                     </button>
-                    <AnimatePresence>
-                      {isOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3, ease: "easeInOut" }}
-                        >
-                          <div className="px-6 pb-6 text-slate-400 leading-relaxed border-t border-white/5 pt-4">
-                            {item.a}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
+                    
+                    <div 
+                      className="accordion-content" 
+                      data-state={isOpen ? "open" : "closed"}
+                    >
+                      <div className="accordion-inner">
+                        <div className="px-6 pb-6 text-slate-400 leading-relaxed border-t border-white/5 pt-4">
+                          {item.a}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
             </div>

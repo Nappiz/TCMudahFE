@@ -275,7 +275,7 @@ export default function FeedbackPage() {
                                 {classNameMap.get(f.class_id) || <span className="font-mono opacity-70">{f.class_id}</span>}
                              </div>
                              <div className="text-[10px] text-slate-500 font-mono">
-                                {new Date(f.created_at).toLocaleDateString('id-ID', { dateStyle: 'long', timeStyle: 'short' })}
+                                {new Date(f.created_at).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' })}
                              </div>
                          </div>
                          {f.rating && (

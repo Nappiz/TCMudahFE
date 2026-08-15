@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/Button"; 
-import { motion, AnimatePresence } from "framer-motion";
 
 type Role = "superadmin" | "admin" | "mentor" | "peserta";
 type User = {
@@ -54,8 +53,17 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -94,14 +102,12 @@ export default function Navbar() {
 
   return (
     <div className="fixed top-0 inset-x-0 z-50 flex justify-center pt-4 px-4 pointer-events-none">
-      <motion.nav
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+      <nav
         className={`
           pointer-events-auto
-          relative flex items-center justify-between p-2 rounded-full transition-all duration-300
+          relative flex items-center justify-between p-2 rounded-full transition-all duration-300 animate-fade-in-up
           ${scrolled 
-            ? "w-full max-w-4xl bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50" 
+            ? "w-full max-w-4xl bg-slate-900/95 md:bg-slate-900/80 md:backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50" 
             : "w-full max-w-7xl bg-transparent border border-transparent"}
         `}
       >
@@ -166,33 +172,28 @@ export default function Navbar() {
             <line x1="4" x2="20" y1="18" y2="18" />
           </svg>
         </button>
-      </motion.nav>
+      </nav>
 
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            className="pointer-events-auto absolute top-20 inset-x-4 p-4 rounded-3xl bg-slate-900 border border-white/10 shadow-2xl z-40 flex flex-col gap-2"
-          >
-             {links.map(l => (
-               <Link key={l.href} href={l.href} onClick={() => setMobileMenuOpen(false)} className="p-3 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl">
-                 {l.label}
-               </Link>
-             ))}
-             <div className="h-px bg-white/10 my-2" />
-             {!user ? (
-               <div className="grid grid-cols-2 gap-2">
-                 <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="p-3 text-center text-slate-300 border border-white/10 rounded-xl">Masuk</Link>
-                 <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="p-3 text-center bg-white text-slate-950 rounded-xl font-semibold">Daftar</Link>
-               </div>
-             ) : (
-                <button onClick={onLogout} className="p-3 text-center bg-red-500/10 text-red-400 rounded-xl">Logout</button>
-             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Mobile Menu */}
+      <div 
+        className={`pointer-events-auto absolute top-20 inset-x-4 p-4 rounded-3xl bg-slate-900 border border-white/10 shadow-2xl z-40 flex flex-col gap-2 transition-all duration-300 origin-top
+        ${mobileMenuOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-4 pointer-events-none'}`}
+      >
+         {links.map(l => (
+           <Link key={l.href} href={l.href} onClick={() => setMobileMenuOpen(false)} className="p-3 text-slate-300 hover:text-white hover:bg-white/5 rounded-xl">
+             {l.label}
+           </Link>
+         ))}
+         <div className="h-px bg-white/10 my-2" />
+         {!user ? (
+           <div className="grid grid-cols-2 gap-2">
+             <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="p-3 text-center text-slate-300 border border-white/10 rounded-xl">Masuk</Link>
+             <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="p-3 text-center bg-white text-slate-950 rounded-xl font-semibold">Daftar</Link>
+           </div>
+         ) : (
+            <button onClick={onLogout} className="p-3 text-center bg-red-500/10 text-red-400 rounded-xl">Logout</button>
+         )}
+      </div>
     </div>
   );
 }

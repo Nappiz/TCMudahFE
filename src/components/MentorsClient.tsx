@@ -1,6 +1,6 @@
 "use client";
-import { motion } from "framer-motion";
 import { GraduationCap, Star } from "lucide-react";
+import FadeIn from "./ui/FadeIn";
 
 type Mentor = {
   id: string;
@@ -31,43 +31,40 @@ export default function MentorsClient({ data }: { data: Mentor[] | null }) {
           {data && data.length === 0 && <div className="col-span-full text-center text-slate-500 py-10">Data mentor belum tersedia.</div>}
 
           {data?.map((m, i) => (
-            <motion.div
-              key={m.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 0.5 }}
-              className="group relative h-[420px] rounded-3xl overflow-hidden bg-slate-900 border border-white/10 hover:border-cyan-500/50 transition-colors duration-500"
-            >
-              <div className="absolute inset-0 bg-gradient-to-b from-slate-800 to-slate-950" />
-              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]" />
-              
-              <div className="absolute top-0 left-0 w-full h-2/3 flex items-center justify-center bg-gradient-to-b from-slate-800/50 to-slate-950/0 group-hover:scale-105 transition-transform duration-700">
-                 <span className="text-9xl font-bold text-slate-800 select-none group-hover:text-slate-700 transition-colors">
-                    {getInitials(m.name)}
-                 </span>
-              </div>
+            <FadeIn key={m.id} delay={i * 100}>
+              <div
+                className="group relative h-[420px] rounded-3xl overflow-hidden bg-slate-900 border border-white/10 hover:border-cyan-500/50 transition-colors duration-500"
+              >
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-800 to-slate-950" />
+                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]" />
+                
+                <div className="absolute top-0 left-0 w-full h-2/3 flex items-center justify-center bg-gradient-to-b from-slate-800/50 to-slate-950/0 group-hover:scale-105 transition-transform duration-700">
+                   <span className="text-9xl font-bold text-slate-800 select-none group-hover:text-slate-700 transition-colors">
+                      {getInitials(m.name)}
+                   </span>
+                </div>
 
-              <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent pt-20">
-                <div className="mb-1 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-950/30 text-[10px] font-bold text-cyan-400 uppercase tracking-wide">
-                  <GraduationCap className="w-3 h-3" />
-                  Angkatan {m.angkatan}
-                </div>
-                
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
-                  {m.name}
-                </h3>
-                
-                <div className="space-y-2">
-                  {m.achievements.slice(0, 5).map((ach, idx) => (
-                    <div key={idx} className="flex items-start gap-2 text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
-                      <Star className="w-3 h-3 text-yellow-500/70 mt-0.5 flex-shrink-0" />
-                      <span className="line-clamp-1">{ach}</span>
-                    </div>
-                  ))}
+                <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent pt-20">
+                  <div className="mb-1 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-950/30 text-[10px] font-bold text-cyan-400 uppercase tracking-wide">
+                    <GraduationCap className="w-3 h-3" />
+                    Angkatan {m.angkatan}
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
+                    {m.name}
+                  </h3>
+                  
+                  <div className="space-y-2">
+                    {m.achievements.slice(0, 5).map((ach, idx) => (
+                      <div key={idx} className="flex items-start gap-2 text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
+                        <Star className="w-3 h-3 text-yellow-500/70 mt-0.5 flex-shrink-0" />
+                        <span className="line-clamp-1">{ach}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </motion.div>
+            </FadeIn>
           ))}
         </div>
       </div>
