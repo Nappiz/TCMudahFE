@@ -232,7 +232,7 @@ export function useCMSOverview() {
       setMe(m);
 
       const [u, c, t, mn, cl, od] = await Promise.allSettled([
-        api<UserRow[]>("/admin/users"),
+        api<{total: number, data: UserRow[]}>("/admin/users?limit=10000"),
         api<Curriculum[]>("/curriculum"),
         api<Testimonial[]>("/admin/testimonials"),
         api<Mentor[]>("/admin/mentors"),
@@ -240,7 +240,7 @@ export function useCMSOverview() {
         api<AdminOrder[]>("/admin/orders"),
       ]);
 
-      setUsers(u.status === "fulfilled" ? u.value : []);
+      setUsers(u.status === "fulfilled" ? u.value.data : []);
       setCurriculum(c.status === "fulfilled" ? c.value : []);
       setTestimonials(t.status === "fulfilled" ? t.value : []);
       setMentors(mn.status === "fulfilled" ? mn.value : []);

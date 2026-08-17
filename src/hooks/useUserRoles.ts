@@ -14,23 +14,40 @@ export function useUserRoles() {
   const [err, setErr] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [total, setTotal] = useState(0);
+
   const [pending, setPending] = useState<Record<string, Role>>({});
   const [saving, setSaving] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    fetchMe().then(setMe).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [search]);
 
   useEffect(() => {
     let cancel = false;
 
     (async () => {
+      setLoading(true);
       try {
         setErr(null);
-        const [meRes, list] = await Promise.all([fetchMe(), fetchAdminUsers()]);
+        const res = await fetchAdminUsers(page, limit, debouncedSearch, roleFilter);
         if (cancel) return;
 
-        const top = list.find((u) => u.id === meRes.id);
-        const rest = list.filter((u) => u.id !== meRes.id);
-
-        setMe(meRes);
-        setRows(top ? [top, ...rest] : list);
+        setTotal(res.total);
+        setRows(res.data);
       } catch (e: any) {
         if (!cancel) {
           setErr(e?.message || "Gagal memuat data");
@@ -43,31 +60,14 @@ export function useUserRoles() {
     return () => {
       cancel = true;
     };
-  }, []);
+  }, [page, limit, debouncedSearch, roleFilter]);
 
   const canEdit = useMemo(
     () => !!(me && (me.role === "admin" || me.role === "superadmin")),
     [me],
   );
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return rows;
-
-    return rows.filter((u: any) => {
-      const fullName = u.full_name?.toLowerCase?.() ?? "";
-      const email = u.email?.toLowerCase?.() ?? "";
-      const role = u.role?.toLowerCase?.() ?? "";
-      const nim = u.nim?.toLowerCase?.() ?? ""; // kalau ada nim
-
-      return (
-        fullName.includes(q) ||
-        email.includes(q) ||
-        nim.includes(q) ||
-        role.includes(q)
-      );
-    });
-  }, [rows, search]);
+  const filtered = rows;
 
   const setPendingRole = (userId: string, role: Role) => {
     setPending((p) => ({ ...p, [userId]: role }));
@@ -112,5 +112,11 @@ export function useUserRoles() {
     saving,
     setPendingRole,
     saveUserRole,
+    page,
+    setPage,
+    limit,
+    total,
+    roleFilter,
+    setRoleFilter,
   };
 }

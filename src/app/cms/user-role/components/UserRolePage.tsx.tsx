@@ -23,6 +23,12 @@ export default function UserRolePage() {
     saving,
     setPendingRole,
     saveUserRole,
+    page,
+    setPage,
+    limit,
+    total,
+    roleFilter,
+    setRoleFilter,
   } = useUserRoles();
 
   const successModal = useModal();
@@ -69,6 +75,11 @@ export default function UserRolePage() {
         me={me}
         search={search}
         onSearchChange={setSearch}
+        roleFilter={roleFilter}
+        onRoleFilterChange={(val) => {
+          setRoleFilter(val);
+          setPage(1); // Reset page on role filter change
+        }}
       />
 
       <UserRoleTable
@@ -79,6 +90,10 @@ export default function UserRolePage() {
         saving={saving}
         onChangeRole={setPendingRole}
         onSaveRow={handleSave}
+        page={page}
+        total={total}
+        limit={limit}
+        onPageChange={setPage}
       />
 
       <div className="flex items-center gap-2 text-xs text-white/50">

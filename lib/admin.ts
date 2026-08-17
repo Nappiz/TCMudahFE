@@ -57,8 +57,14 @@ export function fetchMe() {
   return api<User>("/me");
 }
 
-export function fetchAdminUsers() {
-  return api<User[]>("/admin/users");
+export function fetchAdminUsers(page = 1, limit = 20, search = "", role = "") {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  if (search) params.set("search", search);
+  if (role) params.set("role", role);
+  return api<{total: number, data: User[]}>(`/admin/users?${params.toString()}`);
 }
 
 /* ========= ROLE MANAGEMENT ========= */
