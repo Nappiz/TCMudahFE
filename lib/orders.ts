@@ -25,8 +25,14 @@ export type Order = {
   user_email?: string | null;
 };
 
-export function fetchOrders() {
-  return api<Order[]>("/admin/orders");
+export function fetchOrders(page = 1, limit = 20, search = "", status = "") {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  if (search) params.set("search", search);
+  if (status) params.set("status", status);
+  return api<{total: number, data: Order[]}>(`/admin/orders?${params.toString()}`);
 }
 
 export function updateOrderStatus(id: string, status: Exclude<OrderStatus, "pending">) {

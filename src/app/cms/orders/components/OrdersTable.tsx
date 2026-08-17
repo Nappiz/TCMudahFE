@@ -8,11 +8,18 @@ type Props = {
   rows: Order[];
   rupiah: (n: number) => string;
   onSetStatus: (id: string, status: Exclude<OrderStatus, "pending">) => void;
+  page: number;
+  total: number;
+  limit: number;
+  onPageChange: (p: number) => void;
 };
 
-export function OrdersTable({ rows, rupiah, onSetStatus }: Props) {
+export function OrdersTable({ rows, rupiah, onSetStatus, page, total, limit, onPageChange }: Props) {
+  const totalPages = Math.ceil(total / limit) || 1;
+  const startIndex = (page - 1) * limit + 1;
+  const endIndex = Math.min(page * limit, total);
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+    <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
       <table className="min-w-full text-sm">
         <thead className="bg-white/5 text-white/60">
           <tr>
@@ -149,6 +156,58 @@ export function OrdersTable({ rows, rupiah, onSetStatus }: Props) {
           )}
         </tbody>
       </table>
+
+      {/* Pagination UI */}
+      <div className="flex items-center justify-between border-t border-white/10 px-4 py-3 sm:px-6">
+        <div className="flex flex-1 justify-between sm:hidden">
+          <button
+            onClick={() => onPageChange(page - 1)}
+            disabled={page === 1}
+            className="relative inline-flex items-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/70 hover:bg-white/10 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => onPageChange(page + 1)}
+            disabled={page === totalPages}
+            className="relative ml-3 inline-flex items-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/70 hover:bg-white/10 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-white/50">
+              Menampilkan <span className="font-medium text-white/80">{total > 0 ? startIndex : 0}</span> hingga <span className="font-medium text-white/80">{endIndex}</span> dari <span className="font-medium text-white/80">{total}</span> hasil
+            </p>
+          </div>
+          <div>
+            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button
+                onClick={() => onPageChange(page - 1)}
+                disabled={page === 1}
+                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-white/40 ring-1 ring-inset ring-white/10 hover:bg-white/5 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+              >
+                <span className="sr-only">Previous</span>
+                <span aria-hidden="true">&laquo; Prev</span>
+              </button>
+              
+              <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-white/80 ring-1 ring-inset ring-white/10">
+                Halaman {page} dari {totalPages}
+              </span>
+
+              <button
+                onClick={() => onPageChange(page + 1)}
+                disabled={page === totalPages}
+                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-white/40 ring-1 ring-inset ring-white/10 hover:bg-white/5 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+              >
+                <span className="sr-only">Next</span>
+                <span aria-hidden="true">Next &raquo;</span>
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

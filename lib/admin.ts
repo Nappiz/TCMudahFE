@@ -93,7 +93,7 @@ export function fetchAdminPackages() {
 }
 
 export function fetchApprovedOrders() {
-  return api<Order[]>("/admin/orders?status=approved");
+  return api<{total: number, data: Order[]}>("/admin/orders?status=approved&limit=10000");
 }
 
 export function fetchUserEnrollments(userId: string) {

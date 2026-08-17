@@ -8,7 +8,7 @@ import { useGlobalError } from "@/components/providers/ErrorProvider";
 
 export default function OrdersPage() {
   const { showError } = useGlobalError();
-  const { filtered, search, setSearch, err, loading, rupiah, setStatus } =
+  const { filtered, search, setSearch, statusFilter, setStatusFilter, page, setPage, limit, total, err, loading, rupiah, setStatus } =
     useOrders();
 
   async function handleSetStatus(
@@ -40,12 +40,24 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-5">
-      <OrdersHeader search={search} onSearchChange={setSearch} />
+      <OrdersHeader 
+        search={search} 
+        onSearchChange={setSearch} 
+        statusFilter={statusFilter}
+        onStatusFilterChange={(val) => {
+          setStatusFilter(val);
+          setPage(1);
+        }}
+      />
 
       <OrdersTable
         rows={filtered}
         rupiah={rupiah}
         onSetStatus={handleSetStatus}
+        page={page}
+        total={total}
+        limit={limit}
+        onPageChange={setPage}
       />
     </div>
   );

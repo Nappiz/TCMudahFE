@@ -48,13 +48,14 @@ export function useEnrollments() {
     setLoading(true);
     setError(null);
     try {
-      const [u, c, p, orders] = await Promise.all([
-        fetchAdminUsers(),
-        fetchAdminClasses(),
-        fetchAdminPackages(),
-        fetchApprovedOrders(),
-      ]);
+      // Melakukan fetch secara berurutan untuk mencegah [WinError 10035] di backend (FastAPI Windows concurrent threads limit)
+      const uRes = await fetchAdminUsers(1, 10000);
+      const c = await fetchAdminClasses();
+      const p = await fetchAdminPackages();
+      const ordersRes = await fetchApprovedOrders();
 
+      const u = uRes.data;
+      const orders = ordersRes.data;
       const approvedUserIds = new Set(orders.map((o) => o.user_id));
       const onlyApprovedParticipants = u.filter(
         (x) => x.role === "peserta" && approvedUserIds.has(x.id),

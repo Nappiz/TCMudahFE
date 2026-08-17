@@ -20,7 +20,7 @@ export function ShortlinksTable({
   onDelete,
 }: Props) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+    <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
       <table className="min-w-full text-sm">
         <thead className="bg-white/5 text-white/60">
           <tr>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   fetchOrders,
   updateOrderStatus,
@@ -11,8 +11,23 @@ import {
 export function useOrders() {
   const [rows, setRows] = useState<Order[]>([]);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [total, setTotal] = useState(0);
+
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [search]);
 
   useEffect(() => {
     let cancel = false;
@@ -21,8 +36,10 @@ export function useOrders() {
       try {
         setLoading(true);
         setErr(null);
-        const data = await fetchOrders();
-        if (!cancel) setRows(data);
+        const res = await fetchOrders(page, limit, debouncedSearch, statusFilter);
+        if (cancel) return;
+        setRows(res.data);
+        setTotal(res.total);
       } catch (e: any) {
         if (!cancel) setErr(e?.message ?? "Gagal memuat orders");
       } finally {
@@ -33,20 +50,7 @@ export function useOrders() {
     return () => {
       cancel = true;
     };
-  }, []);
-
-  const filtered = useMemo(() => {
-    const s = search.trim().toLowerCase();
-    if (!s) return rows;
-    return rows.filter((r) => {
-      const pengirim = (r.user_name || r.user_email || "").toLowerCase();
-      return (
-        pengirim.includes(s) ||
-        (r.status || "").toLowerCase().includes(s) ||
-        (r.note || "").toLowerCase().includes(s)
-      );
-    });
-  }, [rows, search]);
+  }, [page, limit, debouncedSearch, statusFilter]);
 
   const rupiah = (n: number) =>
     new Intl.NumberFormat("id-ID", {
@@ -63,9 +67,15 @@ export function useOrders() {
 
   return {
     rows,
-    filtered,
+    filtered: rows,
     search,
     setSearch,
+    statusFilter,
+    setStatusFilter,
+    page,
+    setPage,
+    limit,
+    total,
     err,
     loading,
     rupiah,

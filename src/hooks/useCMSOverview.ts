@@ -237,7 +237,7 @@ export function useCMSOverview() {
         api<Testimonial[]>("/admin/testimonials"),
         api<Mentor[]>("/admin/mentors"),
         api<ClassItem[]>("/admin/classes"), 
-        api<AdminOrder[]>("/admin/orders"),
+        api<{total: number, data: AdminOrder[]}>("/admin/orders?limit=10000"),
       ]);
 
       setUsers(u.status === "fulfilled" ? u.value.data : []);
@@ -245,7 +245,7 @@ export function useCMSOverview() {
       setTestimonials(t.status === "fulfilled" ? t.value : []);
       setMentors(mn.status === "fulfilled" ? mn.value : []);
       setClasses(cl.status === "fulfilled" ? cl.value : []);
-      setOrders(od.status === "fulfilled" ? od.value : []);
+      setOrders(od.status === "fulfilled" ? od.value.data : []);
       setLastLoadedAt(new Date());
     } catch (e: any) {
       setErr(e?.message ?? "Gagal memuat CMS.");

@@ -25,8 +25,8 @@ export function TestimonialsHeader({
             Kelola testimoni untuk ditampilkan di landing page.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative w-64 max-w-[60vw]">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="relative w-full sm:w-64">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
             <input
               value={search}
@@ -39,7 +39,7 @@ export function TestimonialsHeader({
             <Button
               variant="secondary"
               onClick={onAdd}
-              className="inline-flex items-center gap-2"
+              className="w-full sm:w-auto inline-flex justify-center items-center gap-2"
             >
               <Plus className="h-4 w-4" />
               Tambah
