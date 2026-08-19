@@ -11,10 +11,11 @@ import {
   GraduationCap, ShoppingCart, CheckCircle, XCircle, Clock, AlertTriangle,
   TrendingUp, ArrowRight, Trophy, PieChart, Package,
   BookOpen, MessageSquare, Star, FileVideo, Link2,
-  UserCheck, UserPlus, BarChart3, Calendar, Zap,
+  UserCheck, UserPlus, BarChart3, Calendar, Zap, BellRing,
 } from "lucide-react";
 import type { Me } from "@/types/catalog";
 import { Button } from "@/components/ui/Button";
+import { useNotifications } from "@/hooks/useNotifications";
 
 /* ================================================================
  * HELPERS
@@ -655,6 +656,7 @@ function QuickLinks() {
 
 export default function CMSOverviewPage() {
   const { me, stats, orders, classes, loading, err, lastLoadedAt, reload } = useCMSOverview();
+  const { data: notifData } = useNotifications();
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -679,8 +681,34 @@ export default function CMSOverviewPage() {
 
   if (!stats) return <div className="text-center p-10 text-rose-400">Gagal memuat data statistik.</div>;
 
+  const totalNotif = notifData.new_orders + notifData.new_users + notifData.new_feedbacks;
+
   return (
     <div className="space-y-6 pb-12">
+      {/* Notification Banner */}
+      {totalNotif > 0 && (
+        <div className="relative overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-r from-cyan-950/40 to-blue-900/20 p-4 shadow-[0_0_30px_rgba(6,182,212,0.1)] backdrop-blur-md">
+          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
+          <div className="relative flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/20 ring-1 ring-cyan-500/30">
+              <BellRing className="h-5 w-5 text-cyan-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-[14px] font-semibold text-cyan-50">Notifikasi Baru</h3>
+              <p className="mt-1 text-[12px] text-cyan-200/80 leading-relaxed">
+                Terdapat 
+                {notifData.new_orders > 0 && <span className="font-semibold text-cyan-400"> {notifData.new_orders} pesanan baru</span>}
+                {notifData.new_orders > 0 && (notifData.new_users > 0 || notifData.new_feedbacks > 0) && ","}
+                {notifData.new_users > 0 && <span className="font-semibold text-cyan-400"> {notifData.new_users} user baru</span>}
+                {notifData.new_users > 0 && notifData.new_feedbacks > 0 && " dan"}
+                {notifData.new_feedbacks > 0 && <span className="font-semibold text-cyan-400"> {notifData.new_feedbacks} feedback baru</span>}
+                {" "}yang membutuhkan perhatian Anda. Silakan cek menu terkait.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header + Filter */}
       <Header me={me} err={err} onReload={reload}
         startDate={startDate} endDate={endDate} setStartDate={setStartDate} setEndDate={setEndDate} />

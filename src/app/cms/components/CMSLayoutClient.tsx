@@ -10,6 +10,7 @@ import {
   GraduationCap, FileBox, FileVideo, Link2, Search, Bell, Menu, X, Layers
 } from "lucide-react";
 import { apiMe } from "../../../../lib/api";
+import { useNotifications, NotificationsSummary } from "../../../hooks/useNotifications";
 
 type Role = "superadmin" | "admin" | "mentor" | "peserta";
 type User = { id: string; email: string; full_name: string; role: Role };
@@ -39,9 +40,27 @@ export default function CMSLayoutClient({ children }: { children: ReactNode }) {
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname(); 
+  
+  const { data: notifications, fetchNotifications } = useNotifications();
 
   useEffect(() => {
     setMobileMenuOpen(false);
+    
+    // Update local storage when visiting specific pages
+    let updated = false;
+    if (pathname === "/cms/user-role") {
+      localStorage.setItem("cms_last_seen_users", new Date().toISOString());
+      updated = true;
+    }
+    if (pathname === "/cms/feedback") {
+      localStorage.setItem("cms_last_seen_feedbacks", new Date().toISOString());
+      updated = true;
+    }
+    
+    if (updated) {
+      // Re-fetch to clear the badge immediately
+      fetchNotifications();
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -69,11 +88,12 @@ export default function CMSLayoutClient({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-[#0B0E14] text-slate-200 font-sans selection:bg-cyan-500/30">
-      <Sidebar me={me} />
+      <Sidebar me={me} notifications={notifications} />
       <MobileSidebar 
         me={me} 
         isOpen={mobileMenuOpen} 
-        onClose={() => setMobileMenuOpen(false)} 
+        onClose={() => setMobileMenuOpen(false)}
+        notifications={notifications}
       />
 
       <main className="flex-1 flex flex-col min-w-0">
@@ -89,7 +109,7 @@ export default function CMSLayoutClient({ children }: { children: ReactNode }) {
   );
 }
 
-function Sidebar({ me }: { me: User }) {
+function Sidebar({ me, notifications }: { me: User, notifications: NotificationsSummary }) {
   const pathname = usePathname();
 
   return (
@@ -103,7 +123,7 @@ function Sidebar({ me }: { me: User }) {
       </div>
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-1 scrollbar-thin scrollbar-thumb-white/10">
-        <NavLinks pathname={pathname} />
+        <NavLinks pathname={pathname} notifications={notifications} />
       </nav>
 
       <div className="p-4 border-t border-white/5">
@@ -113,7 +133,7 @@ function Sidebar({ me }: { me: User }) {
   );
 }
 
-function MobileSidebar({ me, isOpen, onClose }: { me: User; isOpen: boolean; onClose: () => void }) {
+function MobileSidebar({ me, isOpen, onClose, notifications }: { me: User; isOpen: boolean; onClose: () => void; notifications: NotificationsSummary }) {
   const pathname = usePathname();
 
   return (
@@ -144,7 +164,7 @@ function MobileSidebar({ me, isOpen, onClose }: { me: User; isOpen: boolean; onC
              </div>
 
              <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-                <NavLinks pathname={pathname} />
+                <NavLinks pathname={pathname} notifications={notifications} />
              </nav>
 
              <div className="p-4 border-t border-white/5">
@@ -157,7 +177,7 @@ function MobileSidebar({ me, isOpen, onClose }: { me: User; isOpen: boolean; onC
   );
 }
 
-function NavLinks({ pathname }: { pathname: string }) {
+function NavLinks({ pathname, notifications }: { pathname: string, notifications: NotificationsSummary }) {
     return (
         <>
             {MENU_ITEMS.map((item, i) => {
@@ -165,19 +185,31 @@ function NavLinks({ pathname }: { pathname: string }) {
                 const Icon = item.icon as any;
                 const isActive = pathname === item.href;
                 
+                let badgeCount = 0;
+                if (item.href === "/cms/orders") badgeCount = notifications.new_orders;
+                if (item.href === "/cms/user-role") badgeCount = notifications.new_users;
+                if (item.href === "/cms/feedback") badgeCount = notifications.new_feedbacks;
+                
                 return (
                     <Link
                     key={item.href}
                     href={item.href!}
                     prefetch={true}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    className={`group flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                         isActive
                         ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/10"
                         : "text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent"
                     }`}
                     >
-                    <Icon className={`w-4 h-4 ${isActive ? "text-cyan-400" : "text-slate-500"}`} />
-                    {item.label}
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-4 h-4 transition-colors ${isActive ? "text-cyan-400" : "text-slate-500 group-hover:text-cyan-400/70"}`} />
+                        {item.label}
+                      </div>
+                      {badgeCount > 0 && (
+                        <div className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500/10 px-1.5 text-[10px] font-bold text-rose-400 border border-rose-500/20">
+                          {badgeCount > 99 ? "99+" : badgeCount}
+                        </div>
+                      )}
                     </Link>
                 );
             })}
