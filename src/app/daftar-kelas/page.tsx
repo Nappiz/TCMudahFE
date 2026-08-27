@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search, Loader2, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { fetchCatalog } from "../../../lib/api";
+import { fetchCatalog, api } from "../../../lib/api";
 import CartButton from "./CartButton";
 import ClassCard from "./ClassCard";
 import CartDrawer from "./CartDrawer";
 import { useLocalCart } from "@/hooks/useLocalCart";
-import { Catalog, Curriculum, Mentor } from "@/types/catalog";
+import { Catalog, Curriculum, Mentor, Me } from "@/types/catalog";
 
 const FlyingParticle = ({ startX, startY }: { startX: number; startY: number }) => {
   const targetX = typeof window !== 'undefined' ? window.innerWidth - 80 : 0;
@@ -29,6 +30,7 @@ const FlyingParticle = ({ startX, startY }: { startX: number; startY: number }) 
 
 export default function DaftarKelasPage() {
   const authChecked = useRequireAuth();
+  const router = useRouter();
 
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -56,6 +58,24 @@ export default function DaftarKelasPage() {
     let cancel = false;
     (async () => {
       try {
+        const [meRes, settingRes] = await Promise.all([
+          api<Me>("/me"),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000"}/settings/disable_daftar_kelas`)
+        ]);
+        
+        const isStaff = meRes.role === "admin" || meRes.role === "superadmin";
+        
+        let disabled = false;
+        if (settingRes.ok) {
+           const settingData = await settingRes.json();
+           disabled = settingData.value === "true";
+        }
+        
+        if (disabled && !isStaff && !cancel) {
+           router.replace("/");
+           return;
+        }
+
         const data = await fetchCatalog();
         if (!cancel) setCatalog(data);
       } catch (e: any) {
@@ -65,7 +85,7 @@ export default function DaftarKelasPage() {
     return () => {
       cancel = true;
     };
-  }, [authChecked]);
+  }, [authChecked, router]);
 
   const allItems = useMemo(() => {
     if (!catalog) return [];

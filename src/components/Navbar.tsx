@@ -44,6 +44,27 @@ async function getHasAccess(): Promise<boolean> {
   }
 }
 
+async function getDisableDaftarKelas(): Promise<{ disabled: boolean, message: string }> {
+  try {
+    const [resStatus, resMsg] = await Promise.all([
+      fetch(`${API_BASE}/settings/disable_daftar_kelas`),
+      fetch(`${API_BASE}/settings/disabled_daftar_kelas_msg`)
+    ]);
+    
+    const [dataStatus, dataMsg] = await Promise.all([
+      resStatus.ok ? resStatus.json() : { value: "false" },
+      resMsg.ok ? resMsg.json() : { value: "Pendaftaran kelas ditutup sementara." }
+    ]);
+    
+    return {
+      disabled: dataStatus.value === "true",
+      message: dataMsg.value || "Pendaftaran kelas ditutup sementara."
+    };
+  } catch {
+    return { disabled: false, message: "" };
+  }
+}
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -51,6 +72,11 @@ export default function Navbar() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [disableDaftarKelas, setDisableDaftarKelas] = useState({ disabled: false, message: "" });
+
+  useEffect(() => {
+    getDisableDaftarKelas().then(setDisableDaftarKelas);
+  }, []);
 
   useEffect(() => {
     let ticking = false;
@@ -129,9 +155,25 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
-          <Link href="/daftar-kelas" className="px-4 py-1.5 text-sm font-medium text-cyan-400 hover:text-cyan-300 hover:bg-cyan-950/30 rounded-full transition-all">
-            Daftar Kelas
-          </Link>
+          {disableDaftarKelas.disabled && (!user || (user.role !== "admin" && user.role !== "superadmin")) ? (
+            <div 
+              className="group relative px-4 py-1.5 text-sm font-medium text-slate-500 bg-white/5 rounded-full cursor-not-allowed flex items-center gap-1.5 transition-all"
+            >
+              <svg className="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              Daftar Kelas
+              {/* Premium Tooltip */}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-max max-w-[250px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 pointer-events-none z-50">
+                <div className="bg-slate-800 text-white text-xs px-3 py-2 rounded-xl shadow-xl border border-white/10 text-center leading-relaxed">
+                  {disableDaftarKelas.message}
+                </div>
+                <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-800 rotate-45 border-l border-t border-white/10"></div>
+              </div>
+            </div>
+          ) : (
+            <Link href="/daftar-kelas" className="px-4 py-1.5 text-sm font-medium text-cyan-400 hover:text-cyan-300 hover:bg-cyan-950/30 rounded-full transition-all">
+              Daftar Kelas
+            </Link>
+          )}
         </div>
 
         <div className="hidden md:flex items-center gap-2 pr-1">

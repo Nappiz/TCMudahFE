@@ -7,7 +7,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   BadgeCheck, Home, Users, BookOpenText, MessageSquare, 
-  GraduationCap, FileBox, FileVideo, Link2, Search, Bell, Menu, X, Layers
+  GraduationCap, FileBox, FileVideo, Link2, Search, Bell, Menu, X, Layers, Settings
 } from "lucide-react";
 import { apiMe } from "../../../../lib/api";
 import { useNotifications, NotificationsSummary } from "../../../hooks/useNotifications";
@@ -31,6 +31,8 @@ const MENU_ITEMS = [
   { href: "/cms/testimonials", label: "Testimonials", icon: MessageSquare },
   { href: "/cms/feedback", label: "Feedbacks", icon: MessageSquare },
   { href: "/cms/shortlinks", label: "Shortlinks", icon: Link2 },
+  { type: "divider" },
+  { href: "/cms/settings", label: "Settings", icon: Settings },
 ];
 
 export default function CMSLayoutClient({ children }: { children: ReactNode }) {
