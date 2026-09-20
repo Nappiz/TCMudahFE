@@ -9,8 +9,11 @@ type Props = {
   filteredUsers: User[];
   selectedUserId: string;
   q: string;
+  hasMore: boolean;
+  loadingMore: boolean;
   onQueryChange: (value: string) => void;
   onSelectUser: (id: string) => void;
+  onLoadMore: () => void;
 };
 
 export default function UsersSidebar({
@@ -19,8 +22,11 @@ export default function UsersSidebar({
   filteredUsers,
   selectedUserId,
   q,
+  hasMore,
+  loadingMore,
   onQueryChange,
   onSelectUser,
+  onLoadMore,
 }: Props) {
   const hasAnyUser = users.length > 0;
 
@@ -59,6 +65,7 @@ export default function UsersSidebar({
             const active = selectedUserId === u.id;
             return (
               <button
+                type="button"
                 key={u.id}
                 onClick={() => onSelectUser(u.id)}
                 className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition
@@ -73,6 +80,16 @@ export default function UsersSidebar({
               </button>
             );
           })
+        )}
+        {hasMore && !loading && (
+          <button
+            type="button"
+            onClick={onLoadMore}
+            disabled={loadingMore}
+            className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70 transition hover:bg-white/10 disabled:opacity-50"
+          >
+            {loadingMore ? "Memuat…" : "Muat peserta lainnya"}
+          </button>
         )}
       </div>
     </aside>

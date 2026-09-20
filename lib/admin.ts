@@ -13,14 +13,6 @@ export type ClassItem = {
   title: string;
 };
 
-export type OrderStatus = "pending" | "approved" | "rejected" | "expired";
-
-export type Order = {
-  id: string;
-  user_id: string;
-  status: OrderStatus;
-};
-
 export type Enrollment = {
   id: string;
   user_id: string;
@@ -28,13 +20,33 @@ export type Enrollment = {
   active: boolean;
 };
 
+export type EnrollmentBootstrap = {
+  participants: User[];
+  classes: ClassItem[];
+  packages: PackageItem[];
+  selected_user: User | null;
+  active_class_ids: string[];
+  next_cursor: string | null;
+  has_more: boolean;
+};
+
+export type EnrollmentCandidates = {
+  participants: User[];
+  next_cursor: string | null;
+  has_more: boolean;
+};
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  if (init?.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
-    headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
     ...init,
+    headers,
   });
 
   if (!res.ok) {
@@ -64,7 +76,9 @@ export function fetchAdminUsers(page = 1, limit = 20, search = "", role = "") {
   });
   if (search) params.set("search", search);
   if (role) params.set("role", role);
-  return api<{total: number, data: User[]}>(`/admin/users?${params.toString()}`);
+  return api<{ total: number; data: User[] }>(
+    `/admin/users?${params.toString()}`,
+  );
 }
 
 /* ========= ROLE MANAGEMENT ========= */
@@ -84,20 +98,38 @@ export type PackageItem = {
   class_ids: string[];
 };
 
-export function fetchAdminClasses() {
-  return api<ClassItem[]>("/admin/classes");
+export function fetchEnrollmentBootstrap(options?: {
+  userId?: string;
+  q?: string;
+  limit?: number;
+  cursor?: string;
+}) {
+  const params = new URLSearchParams({ limit: String(options?.limit ?? 50) });
+  if (options?.userId) params.set("user_id", options.userId);
+  if (options?.q) params.set("q", options.q);
+  if (options?.cursor) params.set("cursor", options.cursor);
+  return api<EnrollmentBootstrap>(
+    `/admin/enrollments/bootstrap?${params.toString()}`,
+  );
 }
 
-export function fetchAdminPackages() {
-  return api<PackageItem[]>("/admin/packages");
+export function fetchEnrollmentCandidates(options?: {
+  q?: string;
+  limit?: number;
+  cursor?: string;
+}) {
+  const params = new URLSearchParams({ limit: String(options?.limit ?? 50) });
+  if (options?.q) params.set("q", options.q);
+  if (options?.cursor) params.set("cursor", options.cursor);
+  return api<EnrollmentCandidates>(
+    `/admin/enrollments/candidates?${params.toString()}`,
+  );
 }
 
-export function fetchApprovedOrders() {
-  return api<{total: number, data: Order[]}>("/admin/orders?status=approved&limit=10000");
-}
-
-export function fetchUserEnrollments(userId: string) {
-  return api<Enrollment[]>(`/admin/enrollments?user_id=${encodeURIComponent(userId)}`);
+export function fetchActiveClassIds(userId: string) {
+  return api<{ class_ids: string[] }>(
+    `/admin/enrollments/active-class-ids?user_id=${encodeURIComponent(userId)}`,
+  );
 }
 
 export function setUserEnrollments(userId: string, classIds: string[]) {

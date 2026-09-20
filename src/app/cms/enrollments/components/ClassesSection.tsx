@@ -1,6 +1,6 @@
 "use client";
 
-import { GraduationCap, CheckCircle2, Save, Package } from "lucide-react";
+import { CheckCircle2, GraduationCap, Package, Save } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import type { ClassItem, PackageItem, User } from "../../../../../lib/admin";
 
@@ -11,6 +11,7 @@ type Props = {
   activeClassIds: Set<string>;
   hasChanges: boolean;
   saving: boolean;
+  loadingEnrollments: boolean;
   onToggleClass: (classId: string) => void;
   onSelectPackage: (pkg: PackageItem) => void;
   onSave: () => void;
@@ -23,6 +24,7 @@ export default function ClassesSection({
   activeClassIds,
   hasChanges,
   saving,
+  loadingEnrollments,
   onToggleClass,
   onSelectPackage,
   onSave,
@@ -51,20 +53,33 @@ export default function ClassesSection({
         </div>
       ) : (
         <>
+          {loadingEnrollments && (
+            <div className="mb-4 rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-3 text-sm text-cyan-200">
+              Memuat akses kelas peserta…
+            </div>
+          )}
           {packages.length > 0 && (
             <div className="mb-6">
-              <div className="text-xs text-white/50 mb-2 mt-4 uppercase tracking-wider font-semibold">Tandai dari Paket</div>
+              <div className="text-xs text-white/50 mb-2 mt-4 uppercase tracking-wider font-semibold">
+                Tandai dari Paket
+              </div>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {packages.map((pkg) => (
                   <button
+                    type="button"
                     key={pkg.id}
                     onClick={() => onSelectPackage(pkg)}
+                    disabled={loadingEnrollments}
                     className="inline-flex items-center gap-2 rounded-lg border border-cyan-400/20 bg-cyan-400/5 px-3 py-2 text-sm text-cyan-300 hover:bg-cyan-400/10 cursor-pointer transition-colors text-left"
                   >
                     <Package className="h-4 w-4 shrink-0" />
                     <div>
-                      <span className="block truncate font-medium">{pkg.title}</span>
-                      <span className="block text-[10px] opacity-70">{pkg.class_ids.length} kelas</span>
+                      <span className="block truncate font-medium">
+                        {pkg.title}
+                      </span>
+                      <span className="block text-[10px] opacity-70">
+                        {pkg.class_ids.length} kelas
+                      </span>
                     </div>
                   </button>
                 ))}
@@ -72,7 +87,9 @@ export default function ClassesSection({
             </div>
           )}
 
-          <div className="text-xs text-white/50 mb-2 uppercase tracking-wider font-semibold">Daftar Kelas</div>
+          <div className="text-xs text-white/50 mb-2 uppercase tracking-wider font-semibold">
+            Daftar Kelas
+          </div>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {classes.map((c) => {
               const checked = activeClassIds.has(c.id);
@@ -90,6 +107,7 @@ export default function ClassesSection({
                     type="checkbox"
                     className="accent-emerald-400"
                     checked={checked}
+                    disabled={loadingEnrollments}
                     onChange={() => onToggleClass(c.id)}
                   />
                   <CheckCircle2 className="h-4 w-4" />
@@ -108,7 +126,7 @@ export default function ClassesSection({
             <Button
               variant="secondary"
               onClick={onSave}
-              disabled={!selUser || saving || !hasChanges}
+              disabled={!selUser || saving || loadingEnrollments || !hasChanges}
               className="inline-flex items-center gap-2"
             >
               <Save className="h-4 w-4" />

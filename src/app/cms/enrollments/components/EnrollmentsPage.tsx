@@ -3,14 +3,15 @@
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
-
-import UsersSidebar from "./UsersSidebar";
-import ClassesSection from "./ClassesSection";
 import { useEnrollments } from "@/hooks/useEnrollments";
+import ClassesSection from "./ClassesSection";
+import UsersSidebar from "./UsersSidebar";
 
 export default function EnrollmentsPage() {
   const {
     loading,
+    loadingEnrollments,
+    loadingMore,
     error,
     users,
     classes,
@@ -20,12 +21,14 @@ export default function EnrollmentsPage() {
     selectedUserId,
     activeClassIds,
     hasChanges,
+    hasMore,
     saving,
     q,
     setQ,
     setSelectedUserId,
     toggleClass,
     selectAllInPackage,
+    loadMore,
     save,
     reload,
     modalOpen,
@@ -40,7 +43,9 @@ export default function EnrollmentsPage() {
       <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-sm text-white/60">Kelola akses kelas peserta</div>
+            <div className="text-sm text-white/60">
+              Kelola akses kelas peserta
+            </div>
             <h1 className="text-xl font-bold text-white">Enrollments</h1>
             <p className="text-white/70 text-sm">
               Daftar menampilkan peserta dengan order <b>approved</b>.
@@ -70,8 +75,11 @@ export default function EnrollmentsPage() {
           filteredUsers={filteredUsers}
           selectedUserId={selectedUserId}
           q={q}
+          hasMore={hasMore}
+          loadingMore={loadingMore}
           onQueryChange={setQ}
           onSelectUser={setSelectedUserId}
+          onLoadMore={loadMore}
         />
 
         <ClassesSection
@@ -81,6 +89,7 @@ export default function EnrollmentsPage() {
           activeClassIds={activeClassIds}
           hasChanges={hasChanges}
           saving={saving}
+          loadingEnrollments={loadingEnrollments}
           onToggleClass={toggleClass}
           onSelectPackage={selectAllInPackage}
           onSave={save}

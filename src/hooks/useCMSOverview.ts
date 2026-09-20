@@ -1,28 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { AdminOrder, Me } from "@/types/catalog";
 import { api } from "../../lib/api";
-import type { 
-  AdminOrder, 
-  OrderStatus, 
-  Role, 
-  Me,
-  ClassItem,
-  Mentor,
-  Testimonial,
-  Curriculum
-} from "@/types/catalog"; 
 
 export type DailyPoint = { key: string; label: string; value: number };
 
 export type CMSStats = {
-  // users
   totalUsers: number;
   superadmin: number;
   admin: number;
   mentor: number;
   peserta: number;
   newUsers30d: number;
-
-  // konten
   totalCurr: number;
   totalT: number;
   visibleT: number;
@@ -32,8 +20,6 @@ export type CMSStats = {
   totalClasses: number;
   visibleClasses: number;
   classPerMentor: number;
-
-  // orders
   totalOrders: number;
   pendingOrders: number;
   approvedOrders: number;
@@ -44,238 +30,200 @@ export type CMSStats = {
   participantsActive: number;
   aov: number;
   approvalRate: number;
-
-  // chart
   orderSeries: DailyPoint[];
   revSeries: DailyPoint[];
 };
 
-export type UserRow = {
+export type DashboardTopClass = {
   id: string;
-  email: string;
-  full_name: string;
-  role: Role;
-  created_at?: string;
+  title: string;
+  count: number;
+  revenue: number;
 };
 
-/* =========================================================
- * Helpers
- * =======================================================*/
+export type DashboardPeriod = {
+  totalOrders: number;
+  pendingOrders: number;
+  approvedOrders: number;
+  rejectedOrders: number;
+  expiredOrders: number;
+  revenueApproved: number;
+  aov: number;
+  approvalRate: number;
+  classRevenue: number;
+  packageRevenue: number;
+  topClasses: DashboardTopClass[];
+};
 
-export function parseDate(d?: string) {
-  if (!d) return null;
-  const t = new Date(d);
-  return Number.isNaN(t.getTime()) ? null : t;
+type ApiSeriesPoint = { key: string; value: number };
+
+type DashboardOverviewResponse = {
+  me: Me;
+  stats: {
+    total_users: number;
+    superadmin: number;
+    admin: number;
+    mentor: number;
+    peserta: number;
+    new_users_30d: number;
+    total_curriculum: number;
+    total_testimonials: number;
+    visible_testimonials: number;
+    hidden_testimonials: number;
+    total_mentors: number;
+    visible_mentors: number;
+    total_classes: number;
+    visible_classes: number;
+    class_per_mentor: number;
+    total_orders: number;
+    pending_orders: number;
+    approved_orders: number;
+    rejected_orders: number;
+    expired_orders: number;
+    revenue_approved: number;
+    revenue_30d: number;
+    participants_active: number;
+    aov: number;
+    approval_rate: number;
+    order_series: ApiSeriesPoint[];
+    revenue_series: ApiSeriesPoint[];
+  };
+  period: {
+    total_orders: number;
+    pending_orders: number;
+    approved_orders: number;
+    rejected_orders: number;
+    expired_orders: number;
+    revenue_approved: number;
+    aov: number;
+    approval_rate: number;
+    class_revenue: number;
+    package_revenue: number;
+    top_classes: DashboardTopClass[];
+  };
+  pending_latest: AdminOrder[];
+  recent_orders: AdminOrder[];
+};
+
+export function parseDate(value?: string) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function daysAgo(n: number) {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - n);
-  return d;
+function formatSeries(points: ApiSeriesPoint[]): DailyPoint[] {
+  return points.map((point) => ({
+    key: point.key,
+    label: new Date(`${point.key}T00:00:00Z`).toLocaleDateString("id-ID", {
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    }),
+    value: Number(point.value),
+  }));
 }
 
-function isWithinDays(dateStr?: string, days = 30) {
-  const t = parseDate(dateStr);
-  if (!t) return false;
-  return t >= daysAgo(days);
-}
-
-function formatShortDate(d: Date) {
-  return d.toLocaleDateString('id-ID', {
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function buildDailyBuckets(days: number): DailyPoint[] {
-  const arr: DailyPoint[] = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const d = daysAgo(i);
-    const key = d.toISOString().slice(0, 10); 
-    arr.push({
-      key,
-      label: formatShortDate(d),
-      value: 0,
-    });
-  }
-  return arr;
-}
-
-function computeStats(
-  users: UserRow[],
-  curriculum: Curriculum[], 
-  testimonials: Testimonial[], 
-  mentors: Mentor[], 
-  classes: ClassItem[], 
-  orders: AdminOrder[]
-): CMSStats {
-  // Users
-  const totalUsers = users.length;
-  const superadmin = users.filter((x) => x.role === "superadmin").length;
-  const admin = users.filter((x) => x.role === "admin").length;
-  const mentor = users.filter((x) => x.role === "mentor").length;
-  const peserta = users.filter((x) => x.role === "peserta").length;
-  const newUsers30d = users.filter((u) => isWithinDays(u.created_at, 30)).length;
-
-  // Curriculum
-  const totalCurr = curriculum.length;
-
-  // Testimonials
-  const totalT = testimonials.length;
-  const visibleT = testimonials.filter((x: any) => x.visible).length; 
-  const hiddenT = totalT - visibleT;
-
-  // Mentors
-  const totalMentors = mentors.length;
-  const visibleMentors = mentors.filter((x) => x.visible).length;
-
-  // Classes
-  const totalClasses = classes.length;
-  const visibleClasses = classes.filter((c) => c.visible).length;
-  const classPerMentor = totalMentors ? totalClasses / totalMentors : 0;
-
-  // Orders
-  const totalOrders = orders.length;
-  const pendingOrders = orders.filter((o) => o.status === "pending").length;
-  const approvedOrders = orders.filter((o) => o.status === "approved").length;
-  const rejectedOrders = orders.filter((o) => o.status === "rejected").length;
-  const expiredOrders = orders.filter((o) => o.status === "expired").length;
-
-  const revenueApproved = orders
-    .filter((o) => o.status === "approved")
-    .reduce((s, o) => s + (o.total || 0), 0);
-
-  const participantsActive = (() => {
-    const set = new Set<string>();
-    orders.forEach((o) => {
-      if (o.status === "approved" && o.user_id) set.add(o.user_id);
-    });
-    return set.size;
-  })();
-
-  const aov = approvedOrders ? revenueApproved / approvedOrders : 0;
-  const approvalRate = totalOrders
-    ? Math.round((approvedOrders / totalOrders) * 100)
-    : 0;
-
-  const revenue30d = orders
-    .filter((o) => o.status === "approved" && isWithinDays(o.created_at, 30))
-    .reduce((s, o) => s + (o.total || 0), 0);
-
-  const days = 14;
-  const orderSeries = buildDailyBuckets(days);
-  const revSeries = buildDailyBuckets(days);
-
-  orders.forEach((o) => {
-    const t = parseDate(o.created_at);
-    if (!t) return;
-    const key = t.toISOString().slice(0, 10);
-
-    const os = orderSeries.find((d) => d.key === key);
-    if (os) os.value += 1;
-
-    const rs = revSeries.find((d) => d.key === key);
-    if (rs && o.status === "approved") rs.value += o.total || 0;
-  });
-
+function mapStats(data: DashboardOverviewResponse["stats"]): CMSStats {
   return {
-    totalUsers,
-    superadmin,
-    admin,
-    mentor,
-    peserta,
-    newUsers30d,
-    totalCurr,
-    totalT,
-    visibleT,
-    hiddenT,
-    totalMentors,
-    visibleMentors,
-    totalClasses,
-    visibleClasses,
-    classPerMentor,
-    totalOrders,
-    pendingOrders,
-    approvedOrders,
-    rejectedOrders,
-    expiredOrders,
-    revenueApproved,
-    revenue30d,
-    participantsActive,
-    aov,
-    approvalRate,
-    orderSeries,
-    revSeries,
+    totalUsers: Number(data.total_users),
+    superadmin: Number(data.superadmin),
+    admin: Number(data.admin),
+    mentor: Number(data.mentor),
+    peserta: Number(data.peserta),
+    newUsers30d: Number(data.new_users_30d),
+    totalCurr: Number(data.total_curriculum),
+    totalT: Number(data.total_testimonials),
+    visibleT: Number(data.visible_testimonials),
+    hiddenT: Number(data.hidden_testimonials),
+    totalMentors: Number(data.total_mentors),
+    visibleMentors: Number(data.visible_mentors),
+    totalClasses: Number(data.total_classes),
+    visibleClasses: Number(data.visible_classes),
+    classPerMentor: Number(data.class_per_mentor),
+    totalOrders: Number(data.total_orders),
+    pendingOrders: Number(data.pending_orders),
+    approvedOrders: Number(data.approved_orders),
+    rejectedOrders: Number(data.rejected_orders),
+    expiredOrders: Number(data.expired_orders),
+    revenueApproved: Number(data.revenue_approved),
+    revenue30d: Number(data.revenue_30d),
+    participantsActive: Number(data.participants_active),
+    aov: Number(data.aov),
+    approvalRate: Number(data.approval_rate),
+    orderSeries: formatSeries(data.order_series),
+    revSeries: formatSeries(data.revenue_series),
   };
 }
 
-export function useCMSOverview() {
+function mapPeriod(data: DashboardOverviewResponse["period"]): DashboardPeriod {
+  return {
+    totalOrders: Number(data.total_orders),
+    pendingOrders: Number(data.pending_orders),
+    approvedOrders: Number(data.approved_orders),
+    rejectedOrders: Number(data.rejected_orders),
+    expiredOrders: Number(data.expired_orders),
+    revenueApproved: Number(data.revenue_approved),
+    aov: Number(data.aov),
+    approvalRate: Number(data.approval_rate),
+    classRevenue: Number(data.class_revenue),
+    packageRevenue: Number(data.package_revenue),
+    topClasses: data.top_classes.map((item) => ({
+      ...item,
+      count: Number(item.count),
+      revenue: Number(item.revenue),
+    })),
+  };
+}
+
+export function useCMSOverview(startDate = "", endDate = "") {
   const [me, setMe] = useState<Me | null>(null);
-
-  const [users, setUsers] = useState<UserRow[]>([]);
-  const [curriculum, setCurriculum] = useState<Curriculum[]>([]);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [mentors, setMentors] = useState<Mentor[]>([]);
-  const [classes, setClasses] = useState<ClassItem[]>([]); 
-  const [orders, setOrders] = useState<AdminOrder[]>([]);
-
+  const [stats, setStats] = useState<CMSStats | null>(null);
+  const [period, setPeriod] = useState<DashboardPeriod | null>(null);
+  const [pendingLatest, setPendingLatest] = useState<AdminOrder[]>([]);
+  const [recentOrders, setRecentOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  const [lastLoadedAt, setLastLoadedAt] = useState<Date | null>(null);
+  const requestIdRef = useRef(0);
 
   const reload = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setErr(null);
     try {
-      const m = await api<Me>("/me");
-      setMe(m);
-
-      const [u, c, t, mn, cl, od] = await Promise.allSettled([
-        api<{total: number, data: UserRow[]}>("/admin/users?limit=10000"),
-        api<Curriculum[]>("/curriculum"),
-        api<Testimonial[]>("/admin/testimonials"),
-        api<Mentor[]>("/admin/mentors"),
-        api<ClassItem[]>("/admin/classes"), 
-        api<{total: number, data: AdminOrder[]}>("/admin/orders?limit=10000"),
-      ]);
-
-      setUsers(u.status === "fulfilled" ? u.value.data : []);
-      setCurriculum(c.status === "fulfilled" ? c.value : []);
-      setTestimonials(t.status === "fulfilled" ? t.value : []);
-      setMentors(mn.status === "fulfilled" ? mn.value : []);
-      setClasses(cl.status === "fulfilled" ? cl.value : []);
-      setOrders(od.status === "fulfilled" ? od.value.data : []);
-      setLastLoadedAt(new Date());
-    } catch (e: any) {
-      setErr(e?.message ?? "Gagal memuat CMS.");
-      setUsers([]);
-      setCurriculum([]);
-      setTestimonials([]);
-      setMentors([]);
-      setClasses([]);
-      setOrders([]);
+      const params = new URLSearchParams({ days: "14" });
+      if (startDate) params.set("start_date", startDate);
+      if (endDate) params.set("end_date", endDate);
+      const response = await api<DashboardOverviewResponse>(
+        `/admin/dashboard/overview?${params.toString()}`,
+      );
+      if (requestId !== requestIdRef.current) return;
+      setMe(response.me);
+      setStats(mapStats(response.stats));
+      setPeriod(mapPeriod(response.period));
+      setPendingLatest(response.pending_latest);
+      setRecentOrders(response.recent_orders);
+    } catch (errorValue: unknown) {
+      if (requestId !== requestIdRef.current) return;
+      setErr(
+        errorValue instanceof Error ? errorValue.message : "Gagal memuat CMS.",
+      );
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
-  }, []);
+  }, [endDate, startDate]);
 
   useEffect(() => {
-    reload();
+    void reload();
   }, [reload]);
 
-  const stats = useMemo(
-    () =>
-      computeStats(
-        users,
-        curriculum,
-        testimonials,
-        mentors,
-        classes,
-        orders
-      ),
-    [users, curriculum, testimonials, mentors, classes, orders]
-  );
-
-  return { me, stats, orders, classes, loading, err, lastLoadedAt, reload };
+  return {
+    me,
+    stats,
+    period,
+    pendingLatest,
+    recentOrders,
+    loading,
+    err,
+    reload,
+  };
 }
