@@ -8,21 +8,22 @@ type Item = {
   blurb: string;
 };
 
+type CatalogResponse = { curriculum: Item[] };
+
 const API_BASE = process.env.BACKEND_URL || "http://localhost:8000";
 
 export default async function ProgramGrid() {
   let items: Item[] = [];
   try {
-    const res = await fetch(`${API_BASE}/curriculum`, {
-      next: { revalidate: 0 },
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch(`${API_BASE}/catalog`, {
+      next: { revalidate: 300 },
     });
     if (res.ok) {
-        const data = await res.json();
-        items = Array.isArray(data) ? data : [];
+      const data = (await res.json()) as CatalogResponse;
+      items = Array.isArray(data.curriculum) ? data.curriculum : [];
     }
   } catch (e) {
-     console.error("Gagal load kurikulum", e);
+    console.error("Gagal load kurikulum", e);
   }
 
   return <ProgramGridClient initialItems={items} />;

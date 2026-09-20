@@ -7,18 +7,20 @@ type Mentor = {
   achievements: string[];
 };
 
+type CatalogResponse = { mentors: Mentor[] };
+
 const API_BASE = process.env.BACKEND_URL || "http://localhost:8000";
 
 export default async function Mentors() {
   let data: Mentor[] | null = null;
   try {
-    const res = await fetch(`${API_BASE}/mentors`, { 
-        next: { revalidate: 0 } 
+    const res = await fetch(`${API_BASE}/catalog`, {
+      next: { revalidate: 300 },
     });
-    const json = await res.json();
-    data = Array.isArray(json) ? json : [];
+    const json = (await res.json()) as CatalogResponse;
+    data = Array.isArray(json.mentors) ? json.mentors : [];
   } catch {
-      data = [];
+    data = [];
   }
 
   return <MentorsClient data={data} />;

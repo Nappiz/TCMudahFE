@@ -1,4 +1,4 @@
-import { apiAdminFeedbackList, apiAdminFeedbackDelete } from "./api";
+import { apiAdminFeedbackDelete, apiAdminFeedbackList } from "./api";
 
 export type FeedbackItem = {
   id: string;
@@ -9,8 +9,11 @@ export type FeedbackItem = {
   class_title?: string;
 };
 
-export async function fetchFeedback(classId?: string) {
-  return apiAdminFeedbackList(classId) as Promise<FeedbackItem[]>;
+export async function fetchFeedback(classId?: string, page = 1, limit = 20) {
+  return apiAdminFeedbackList(classId, page, limit) as Promise<{
+    total: number;
+    data: FeedbackItem[];
+  }>;
 }
 
 export async function deleteFeedback(id: string) {

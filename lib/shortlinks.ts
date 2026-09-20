@@ -1,5 +1,5 @@
 // lib/shortlinks.ts
-import { api, postJSON, API_BASE } from "./api";
+import { API_BASE, api, patchJSON, postJSON } from "./api";
 
 export type Shortlink = {
   id: string;
@@ -22,35 +22,35 @@ export type ShortlinkInput = {
   active: boolean;
 };
 
-export async function apiAdminShortlinksList(): Promise<Shortlink[]> {
-  return api<Shortlink[]>("/admin/shortlinks");
+export async function apiAdminShortlinksList(
+  page = 1,
+  limit = 20,
+  search = "",
+): Promise<{ total: number; data: Shortlink[] }> {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  if (search) params.set("search", search);
+  return api<{ total: number; data: Shortlink[] }>(
+    `/admin/shortlinks?${params.toString()}`,
+  );
 }
 
 export async function apiAdminShortlinksCreate(
-  payload: ShortlinkInput
+  payload: ShortlinkInput,
 ): Promise<Shortlink> {
   // pake helper postJSON lo
   return postJSON<Shortlink>("/admin/shortlinks", payload);
 }
 
-async function patchJSON<T>(path: string, body: any): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "PATCH",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error((await res.text()) || res.statusText);
-  return res.json() as Promise<T>;
-}
-
 export async function apiAdminShortlinksUpdate(
   id: string,
-  payload: ShortlinkInput
+  payload: ShortlinkInput,
 ): Promise<Shortlink> {
   return patchJSON<Shortlink>(
     `/admin/shortlinks/${encodeURIComponent(id)}`,
-    payload
+    payload,
   );
 }
 
@@ -60,15 +60,13 @@ export async function apiAdminShortlinksDelete(id: string): Promise<void> {
     {
       method: "DELETE",
       credentials: "include",
-    }
+    },
   );
   if (!res.ok) throw new Error((await res.text()) || res.statusText);
 }
 
 export async function apiResolveShortlink(
-  slug: string
+  slug: string,
 ): Promise<{ url: string }> {
-  return api<{ url: string }>(
-    `/shortlinks/${encodeURIComponent(slug)}`
-  );
+  return api<{ url: string }>(`/shortlinks/${encodeURIComponent(slug)}`);
 }

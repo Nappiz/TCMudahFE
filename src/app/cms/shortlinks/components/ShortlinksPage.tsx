@@ -1,17 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import Modal from "@/components/ui/Modal";
+import { useModal } from "@/components/ui/useModal";
 import { useShortlinks } from "@/hooks/useShortlinks";
 import type { Shortlink, ShortlinkInput } from "../../../../../lib/shortlinks";
-
-import { Button } from "@/components/ui/Button";
-import Modal from "@/components/ui/Modal";
-import ConfirmModal from "@/components/ui/ConfirmModal";
-import { useModal } from "@/components/ui/useModal";
-
+import { ShortlinksFormModal } from "./ShortlinksFormModal";
 import { ShortlinksHeader } from "./ShortlinksHeader";
 import { ShortlinksTable } from "./ShortlinksTable";
-import { ShortlinksFormModal } from "./ShortlinksFormModal";
 
 export type FormState = {
   slug: string;
@@ -22,10 +19,20 @@ export type FormState = {
 };
 
 export default function ShortlinksPage() {
-  const { rows, loading, error, createShortlink, updateShortlink, deleteShortlink } =
-    useShortlinks();
-
-  const [search, setSearch] = useState("");
+  const {
+    rows,
+    loading,
+    error,
+    search,
+    setSearch,
+    page,
+    setPage,
+    total,
+    limit,
+    createShortlink,
+    updateShortlink,
+    deleteShortlink,
+  } = useShortlinks();
   const [editing, setEditing] = useState<Shortlink | null>(null);
   const [form, setForm] = useState<FormState>({
     slug: "",
@@ -45,19 +52,6 @@ export default function ShortlinksPage() {
   const [errorMsg, setErrorMsg] = useState("Terjadi kesalahan");
   const [pendingDelete, setPendingDelete] = useState<Shortlink | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter((r) => {
-      return (
-        r.slug.toLowerCase().includes(q) ||
-        r.url.toLowerCase().includes(q) ||
-        (r.title || "").toLowerCase().includes(q) ||
-        (r.description || "").toLowerCase().includes(q)
-      );
-    });
-  }, [rows, search]);
 
   const origin = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -133,8 +127,10 @@ export default function ShortlinksPage() {
       formModal.onClose();
       setEditing(null);
       successModal.onOpen();
-    } catch (e: any) {
-      setErrorMsg(e?.message || "Gagal menyimpan shortlink.");
+    } catch (error: unknown) {
+      setErrorMsg(
+        error instanceof Error ? error.message : "Gagal menyimpan shortlink.",
+      );
       errorModal.onOpen();
     } finally {
       setSaving(false);
@@ -153,8 +149,10 @@ export default function ShortlinksPage() {
       await deleteShortlink(pendingDelete.id);
       setSuccessMsg("Shortlink berhasil dihapus.");
       successModal.onOpen();
-    } catch (e: any) {
-      setErrorMsg(e?.message || "Gagal menghapus shortlink.");
+    } catch (error: unknown) {
+      setErrorMsg(
+        error instanceof Error ? error.message : "Gagal menghapus shortlink.",
+      );
       errorModal.onOpen();
     } finally {
       setDeleting(false);
@@ -169,18 +167,44 @@ export default function ShortlinksPage() {
         search={search}
         onSearchChange={setSearch}
         loading={loading}
-        total={filtered.length}
+        total={total}
         error={error}
         onCreate={openCreate}
       />
 
       <ShortlinksTable
-        rows={filtered}
+        rows={rows}
         loading={loading}
         origin={origin}
         onEdit={openEdit}
         onDelete={askDelete}
       />
+
+      {total > limit && (
+        <div className="flex items-center justify-between text-sm text-white/60">
+          <span>
+            Halaman {page} dari {Math.ceil(total / limit)}
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={page === 1 || loading}
+              onClick={() => setPage((value) => Math.max(1, value - 1))}
+              className="rounded-lg border border-white/10 px-3 py-2 disabled:opacity-40"
+            >
+              Sebelumnya
+            </button>
+            <button
+              type="button"
+              disabled={page * limit >= total || loading}
+              onClick={() => setPage((value) => value + 1)}
+              className="rounded-lg border border-white/10 px-3 py-2 disabled:opacity-40"
+            >
+              Berikutnya
+            </button>
+          </div>
+        </div>
+      )}
 
       <ShortlinksFormModal
         open={formModal.open}

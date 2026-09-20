@@ -1,16 +1,14 @@
-import type { User } from "@/types/user";
 import type {
   Catalog,
-  Mentor,
-  Curriculum,
-  ClassItem,
-  PackageItem,
   CheckoutInfo,
-  Enrollment,
+  ClassItem,
   ClassMaterial,
+  Enrollment,
 } from "@/types/catalog";
+import type { User } from "@/types/user";
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+export const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 
 /** Low-level JSON helper used by some auth calls */
 async function json<T>(res: Response): Promise<T> {
@@ -33,14 +31,16 @@ export async function api<T>(path: string): Promise<T> {
     let msg = res.statusText;
     try {
       const j = await res.json();
-      if (j?.detail) msg = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail);
-    } catch { }
+      if (j?.detail)
+        msg =
+          typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail);
+    } catch {}
     throw new Error(msg);
   }
   return (await res.json()) as T;
 }
 
-export async function postJSON<T>(path: string, body: any): Promise<T> {
+export async function postJSON<T>(path: string, body: unknown): Promise<T> {
   const r = await fetch(`${API_BASE}${path}`, {
     method: "POST",
     credentials: "include",
@@ -51,8 +51,7 @@ export async function postJSON<T>(path: string, body: any): Promise<T> {
   return r.json() as Promise<T>;
 }
 
-
-export async function patchJSON<T>(path: string, body: any): Promise<T> {
+export async function patchJSON<T>(path: string, body: unknown): Promise<T> {
   const r = await fetch(`${API_BASE}${path}`, {
     method: "PATCH",
     credentials: "include",
@@ -63,7 +62,9 @@ export async function patchJSON<T>(path: string, body: any): Promise<T> {
   return r.json() as Promise<T>;
 }
 
-export async function deleteJSON<T = { ok: boolean }>(path: string): Promise<T> {
+export async function deleteJSON<T = { ok: boolean }>(
+  path: string,
+): Promise<T> {
   const r = await fetch(`${API_BASE}${path}`, {
     method: "DELETE",
     credentials: "include",
@@ -86,13 +87,11 @@ export async function uploadFile(file: File): Promise<string> {
 }
 
 export async function fetchCatalog(): Promise<Catalog> {
-  const [mentors, curriculum, classes, packages] = await Promise.all([
-    api<Mentor[]>("/mentors"),
-    api<Curriculum[]>("/curriculum"),
-    api<ClassItem[]>("/classes"),
-    api<PackageItem[]>("/packages"),
-  ]);
-  return { mentors, curriculum, classes, packages };
+  const response = await fetch(`${API_BASE}/catalog`, {
+    credentials: "omit",
+    cache: "default",
+  });
+  return json<Catalog>(response);
 }
 
 export async function fetchCheckoutInfo(): Promise<CheckoutInfo> {
@@ -152,31 +151,46 @@ export async function apiMe(): Promise<User> {
  * ========================= */
 
 export async function apiMyEnrollments(): Promise<Enrollment[]> {
-  const res = await fetch(`${API_BASE}/enrollments/me`, { credentials: "include" });
+  const res = await fetch(`${API_BASE}/enrollments/me`, {
+    credentials: "include",
+  });
   return json<Enrollment[]>(res);
 }
 
-export async function apiMaterialsByClass(classId: string): Promise<ClassMaterial[]> {
-  const res = await fetch(`${API_BASE}/materials?class_id=${encodeURIComponent(classId)}`, {
-    credentials: "include",
-  });
+export async function apiMaterialsByClass(
+  classId: string,
+): Promise<ClassMaterial[]> {
+  const res = await fetch(
+    `${API_BASE}/materials?class_id=${encodeURIComponent(classId)}`,
+    {
+      credentials: "include",
+    },
+  );
   return json<ClassMaterial[]>(res);
 }
 
-export async function apiSetUserEnrollmentsByPackage(payload: { user_id: string; package_id: string }) {
+export async function apiSetUserEnrollmentsByPackage(payload: {
+  user_id: string;
+  package_id: string;
+}): Promise<Enrollment[]> {
   const res = await fetch(`${API_BASE}/admin/enrollments/set-by-package`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  return json<any>(res);
+  return json<Enrollment[]>(res);
 }
 
-export async function apiAdminMaterialsByClass(classId: string): Promise<ClassMaterial[]> {
-  const res = await fetch(`${API_BASE}/admin/materials?class_id=${encodeURIComponent(classId)}`, {
-    credentials: "include",
-  });
+export async function apiAdminMaterialsByClass(
+  classId: string,
+): Promise<ClassMaterial[]> {
+  const res = await fetch(
+    `${API_BASE}/admin/materials?class_id=${encodeURIComponent(classId)}`,
+    {
+      credentials: "include",
+    },
+  );
   return json<ClassMaterial[]>(res);
 }
 
@@ -186,38 +200,50 @@ export async function apiCreateMaterial(payload: {
   type: "video" | "ppt";
   url: string;
   visible?: boolean;
-}) {
+}): Promise<ClassMaterial> {
   const res = await fetch(`${API_BASE}/admin/materials`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  return json<any>(res);
+  return json<ClassMaterial>(res);
 }
 
-export async function apiUpdateMaterial(id: string, patch: { title?: string; visible?: boolean }) {
-  const res = await fetch(`${API_BASE}/admin/materials/${encodeURIComponent(id)}`, {
-    method: "PATCH",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(patch),
-  });
-  return json<any>(res);
+export async function apiUpdateMaterial(
+  id: string,
+  patch: { title?: string; visible?: boolean },
+): Promise<ClassMaterial> {
+  const res = await fetch(
+    `${API_BASE}/admin/materials/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    },
+  );
+  return json<ClassMaterial>(res);
 }
 
 export async function apiDeleteMaterial(id: string) {
-  const res = await fetch(`${API_BASE}/admin/materials/${encodeURIComponent(id)}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
+  const res = await fetch(
+    `${API_BASE}/admin/materials/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    },
+  );
   return json<{ ok: boolean }>(res);
 }
 
 export async function apiAdminClassById(id: string): Promise<ClassItem> {
-  const res = await fetch(`${API_BASE}/admin/classes/${encodeURIComponent(id)}`, {
-    credentials: "include",
-  });
+  const res = await fetch(
+    `${API_BASE}/admin/classes/${encodeURIComponent(id)}`,
+    {
+      credentials: "include",
+    },
+  );
   return json<ClassItem>(res);
 }
 
@@ -244,18 +270,31 @@ export async function apiMyFeedbacks() {
   return r.json();
 }
 
-export async function apiAdminFeedbackList(classId?: string) {
-  const url = classId ? `/admin/feedback?class_id=${encodeURIComponent(classId)}` : `/admin/feedback`;
-  const r = await fetch(`${API_BASE}${url}`, { credentials: "include" });
+export async function apiAdminFeedbackList(
+  classId?: string,
+  page = 1,
+  limit = 20,
+) {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  if (classId) params.set("class_id", classId);
+  const r = await fetch(`${API_BASE}/admin/feedback?${params.toString()}`, {
+    credentials: "include",
+  });
   if (!r.ok) throw new Error((await r.text()) || r.statusText);
-  return r.json();
+  return r.json() as Promise<{ total: number; data: unknown[] }>;
 }
 
 export async function apiAdminFeedbackDelete(id: string) {
-  const r = await fetch(`${API_BASE}/admin/feedback/${encodeURIComponent(id)}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
+  const r = await fetch(
+    `${API_BASE}/admin/feedback/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    },
+  );
   if (!r.ok) throw new Error((await r.text()) || r.statusText);
   return r.json();
 }
