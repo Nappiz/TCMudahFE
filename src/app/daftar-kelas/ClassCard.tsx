@@ -2,9 +2,14 @@
 
 import { motion } from "framer-motion";
 import { BookOpen, Minus, Plus, Sparkles, UserCircle2 } from "lucide-react";
+import type {
+  ClassItem,
+  Curriculum,
+  Mentor,
+  PackageItem,
+} from "@/types/catalog";
 import { rupiah } from "../../../lib/format";
 import IconButton from "./IconButton";
-import { Curriculum, Mentor } from "@/types/catalog";
 
 export default function ClassCard({
   item,
@@ -15,7 +20,7 @@ export default function ClassCard({
   onDec,
   onAddToCartAnim,
 }: {
-  item: any;
+  item: ClassItem | PackageItem;
   mentor?: Mentor;
   idxCur: Map<string, Curriculum>;
   qty: number;
@@ -23,7 +28,7 @@ export default function ClassCard({
   onDec: (id: string) => void;
   onAddToCartAnim?: (e: React.MouseEvent) => void;
 }) {
-  const isPackage = 'class_ids' in item;
+  const isPackage = "class_ids" in item;
 
   return (
     <motion.div
@@ -32,13 +37,16 @@ export default function ClassCard({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
       className={`group relative flex flex-col overflow-hidden rounded-3xl border transition-all duration-300
-        ${qty > 0
-          ? "border-cyan-500/30 bg-slate-900/80 shadow-[0_0_30px_-10px_rgba(6,182,212,0.15)]"
-          : "border-white/5 bg-slate-900/40 hover:border-white/10 hover:bg-slate-900/60"
+        ${
+          qty > 0
+            ? "border-cyan-500/30 bg-slate-900/80 shadow-[0_0_30px_-10px_rgba(6,182,212,0.15)]"
+            : "border-white/5 bg-slate-900/40 hover:border-white/10 hover:bg-slate-900/60"
         }
       `}
     >
-      {qty > 0 && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-blue-500" />}
+      {qty > 0 && (
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-blue-500" />
+      )}
 
       <div className="p-6 flex flex-col h-full">
         <div className="flex justify-between items-start gap-4 mb-4">
@@ -68,11 +76,14 @@ export default function ClassCard({
               📦 Paket Bundle
             </span>
           ) : (
-            item.curriculum_ids?.slice(0, 3).map((id: string) => {
+            item.curriculum_ids.slice(0, 3).map((id) => {
               const c = idxCur.get(id);
               if (!c) return null;
               return (
-                <span key={id} className="inline-flex items-center gap-1.5 rounded-md border border-white/5 bg-white/[0.02] px-2 py-1 text-[10px] text-slate-300">
+                <span
+                  key={id}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-white/5 bg-white/[0.02] px-2 py-1 text-[10px] text-slate-300"
+                >
                   <BookOpen className="h-3 w-3 opacity-50" />
                   {c.code}
                 </span>
@@ -84,6 +95,7 @@ export default function ClassCard({
         <div className="pt-4 border-t border-white/5">
           {qty === 0 ? (
             <motion.button
+              type="button"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={(e) => {
@@ -101,14 +113,12 @@ export default function ClassCard({
                 <Minus className="h-4 w-4" />
               </IconButton>
               <div className="flex flex-col items-center">
-                <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">Qty</span>
+                <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">
+                  Qty
+                </span>
                 <span className="text-white font-mono font-bold">{qty}</span>
               </div>
-              <IconButton
-                onClick={(e) => {
-                  onInc(item.id);
-                }}
-              >
+              <IconButton onClick={() => onInc(item.id)}>
                 <Plus className="h-4 w-4" />
               </IconButton>
             </div>

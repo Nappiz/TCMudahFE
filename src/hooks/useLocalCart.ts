@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Cart, CartLine, ClassItem } from "@/types/catalog";
+import type { Cart, CartLine, ClassItem, PackageItem } from "@/types/catalog";
 
 const LS_KEY = "tcmudah_cart_v1";
 
-export function useLocalCart(classes: ClassItem[] | null) {
+export function useLocalCart(classes: (ClassItem | PackageItem)[] | null) {
   const [cart, setCart] = useState<Cart>({});
 
   // load from LS
@@ -25,8 +25,10 @@ export function useLocalCart(classes: ClassItem[] | null) {
     () =>
       Object.entries(cart)
         .map(([id, qty]) => ({ id, qty }))
-        .filter((l) => l.qty > 0 && (classes?.some((k) => k.id === l.id) ?? false)),
-    [cart, classes]
+        .filter(
+          (l) => l.qty > 0 && (classes?.some((k) => k.id === l.id) ?? false),
+        ),
+    [cart, classes],
   );
 
   const totalCount = lines.reduce((s, l) => s + l.qty, 0);

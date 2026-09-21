@@ -36,7 +36,7 @@ export type EnrollmentCandidates = {
   has_more: boolean;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+const API_BASE = "/api";
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);

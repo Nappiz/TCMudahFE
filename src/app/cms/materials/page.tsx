@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { BookOpen, Search } from "lucide-react";
 import Link from "next/link";
-import { Search, BookOpen } from "lucide-react";
+import { useEffect, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+const API_BASE = "/api";
 type ClassItem = { id: string; title: string; description?: string };
 
 async function api<T>(p: string) {
@@ -27,14 +27,19 @@ export default function MaterialsIndexPage() {
   const filtered = classes.filter((c) => {
     const s = q.trim().toLowerCase();
     if (!s) return true;
-    return c.title.toLowerCase().includes(s) || (c.description ?? "").toLowerCase().includes(s);
+    return (
+      c.title.toLowerCase().includes(s) ||
+      (c.description ?? "").toLowerCase().includes(s)
+    );
   });
 
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
         <div className="text-white font-semibold">Materials</div>
-        <p className="text-white/70 text-sm">Pilih kelas untuk mengunggah dan mengelola materi (video / ppt).</p>
+        <p className="text-white/70 text-sm">
+          Pilih kelas untuk mengunggah dan mengelola materi (video / ppt).
+        </p>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -49,7 +54,9 @@ export default function MaterialsIndexPage() {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/60">Tidak ada kelas.</div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/60">
+            Tidak ada kelas.
+          </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((c) => (
@@ -62,7 +69,9 @@ export default function MaterialsIndexPage() {
                   <BookOpen className="h-4 w-4" /> Kelas
                 </div>
                 <div className="text-white font-semibold">{c.title}</div>
-                <div className="text-xs text-white/60 mt-1 line-clamp-2">{c.description}</div>
+                <div className="text-xs text-white/60 mt-1 line-clamp-2">
+                  {c.description}
+                </div>
               </Link>
             ))}
           </div>

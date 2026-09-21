@@ -4,7 +4,7 @@ import { ArrowRight, BookOpen, Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { fetchCatalog } from "../../../lib/api";
+import { API_BASE, fetchCatalog } from "../../../lib/api";
 
 type Role = "superadmin" | "admin" | "mentor" | "peserta";
 type Me = { id: string; email: string; full_name: string; role: Role };
@@ -20,8 +20,6 @@ type ClassItem = {
   description: string;
   visible?: boolean;
 };
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);

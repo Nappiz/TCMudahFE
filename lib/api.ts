@@ -8,7 +8,9 @@ import type {
 import type { User } from "@/types/user";
 
 export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+  typeof window === "undefined"
+    ? process.env.BACKEND_URL || "http://localhost:8000"
+    : "/api";
 
 /** Low-level JSON helper used by some auth calls */
 async function json<T>(res: Response): Promise<T> {
@@ -74,16 +76,26 @@ export async function deleteJSON<T = { ok: boolean }>(
 }
 
 export async function uploadFile(file: File): Promise<string> {
-  const fd = new FormData();
-  fd.append("file", file);
-  const r = await fetch(`${API_BASE}/orders/upload`, {
-    method: "POST",
-    credentials: "include",
-    body: fd,
+  const intent = await postJSON<{
+    signed_url: string;
+    path: string;
+    expires_at: string;
+    max_size_bytes: number;
+  }>("/orders/upload-intent", {
+    content_type: file.type,
+    size_bytes: file.size,
   });
-  if (!r.ok) throw new Error((await r.text()) || r.statusText);
-  const j = await r.json();
-  return j.url as string;
+
+  const form = new FormData();
+  form.append("file", file);
+  const upload = await fetch(intent.signed_url, {
+    method: "PUT",
+    body: form,
+  });
+  if (!upload.ok) {
+    throw new Error("Gagal mengunggah bukti pembayaran ke storage.");
+  }
+  return intent.path;
 }
 
 export async function fetchCatalog(): Promise<Catalog> {

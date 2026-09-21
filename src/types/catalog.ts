@@ -11,6 +11,7 @@ export type Testimonial = {
   id: string;
   name: string;
   text: string;
+  role?: string;
   visible: boolean;
   created_at?: string;
 };
@@ -20,7 +21,7 @@ export type Mentor = {
   name: string;
   angkatan: number;
   visible?: boolean;
-  achievements?: string[]
+  achievements?: string[];
 };
 
 export type Curriculum = { id: string; code: string; name: string; sem: 1 | 2 };

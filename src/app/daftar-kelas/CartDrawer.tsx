@@ -1,21 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { AnimatePresence, motion } from "framer-motion";
-import { Minus, Plus, ShoppingBag, X, ArrowRight, Trash2 } from "lucide-react";
-import { rupiah } from "../../../lib/format";
+import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useGlobalError } from "@/components/providers/ErrorProvider";
+import type {
+  CartLine,
+  CheckoutInfo,
+  ClassItem,
+  PackageItem,
+} from "@/types/catalog";
 import { fetchCheckoutInfo, postJSON, uploadFile } from "../../../lib/api";
-import { CartLine, ClassItem, CheckoutInfo } from "@/types/catalog";
+import { rupiah } from "../../../lib/format";
 import CheckoutModal from "./CheckoutModal";
 import SuccessModal from "./SuccessModal";
-import { useGlobalError } from "@/components/providers/ErrorProvider";
 
 export default function CartDrawer({
   openButtonSelector,
   lines,
   classes,
-  packages = [], // Prop tambahan
+  packages = [],
   onInc,
   onDec,
   onClear,
@@ -24,7 +29,7 @@ export default function CartDrawer({
   openButtonSelector: string;
   lines: CartLine[];
   classes: ClassItem[];
-  packages?: any[]; // Array of PackageItem
+  packages?: PackageItem[];
   onInc: (id: string) => void;
   onDec: (id: string) => void;
   onClear: () => void;
@@ -42,15 +47,22 @@ export default function CartDrawer({
   }, [openButtonSelector]);
 
   const map = useMemo(() => {
-    const m = new Map();
-    classes.forEach((c) => m.set(c.id, c));
-    packages.forEach((p) => m.set(p.id, p));
+    const m = new Map<string, ClassItem | PackageItem>();
+    classes.forEach((c) => {
+      m.set(c.id, c);
+    });
+    packages.forEach((p) => {
+      m.set(p.id, p);
+    });
     return m;
   }, [classes, packages]);
 
   const full = lines
     .map((l) => ({ line: l, item: map.get(l.id) }))
-    .filter((x) => x.item) as { line: CartLine; item: any }[];
+    .filter(
+      (entry): entry is { line: CartLine; item: ClassItem | PackageItem } =>
+        entry.item !== undefined,
+    );
 
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
@@ -68,8 +80,10 @@ export default function CartDrawer({
       const i = await fetchCheckoutInfo();
       setInfo(i);
       setCheckoutOpen(true);
-    } catch (e: any) {
-      showError(e?.message || "Gagal memuat info checkout");
+    } catch (error: unknown) {
+      showError(
+        error instanceof Error ? error.message : "Gagal memuat info checkout",
+      );
     }
   }
 
@@ -88,26 +102,26 @@ export default function CartDrawer({
         useWebWorker: true,
       };
       const compressedFile = await imageCompression(file, options);
-      const url = await uploadFile(compressedFile);
+      const proofPath = await uploadFile(compressedFile);
 
       const items = full.map(({ line, item }) => ({
         item_id: line.id,
-        item_type: 'class_ids' in item ? 'package' : 'class',
-        qty: line.qty
+        item_type: "class_ids" in item ? "package" : "class",
+        qty: line.qty,
       }));
 
       await postJSON("/orders", {
         items,
         sender_name: senderName || undefined,
         note: note || undefined,
-        proof_url: url,
+        proof_path: proofPath,
       });
       setCheckoutOpen(false);
       setSuccessOpen(true);
       onClear();
       setOpen(false);
-    } catch (e: any) {
-      setSubmitErr(e?.message || "Gagal checkout");
+    } catch (error: unknown) {
+      setSubmitErr(error instanceof Error ? error.message : "Gagal checkout");
     } finally {
       setSubmitting(false);
     }
@@ -135,9 +149,12 @@ export default function CartDrawer({
               <div className="flex items-center justify-between p-5 border-b border-white/10 bg-slate-900/50">
                 <div className="flex items-center gap-2">
                   <ShoppingBag className="w-5 h-5 text-cyan-400" />
-                  <span className="text-lg font-bold text-white">Keranjang Saya</span>
+                  <span className="text-lg font-bold text-white">
+                    Keranjang Saya
+                  </span>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setOpen(false)}
                   className="cursor-pointer p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
                 >
@@ -149,14 +166,19 @@ export default function CartDrawer({
                 <AnimatePresence initial={false} mode="popLayout">
                   {full.length === 0 ? (
                     <motion.div
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       className="flex flex-col items-center justify-center h-64 text-center"
                     >
                       <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
                         <ShoppingBag className="w-8 h-8 text-slate-600" />
                       </div>
                       <p className="text-slate-400">Keranjang masih kosong.</p>
-                      <button onClick={() => setOpen(false)} className="cursor-pointer mt-4 text-cyan-400 text-sm hover:underline">
+                      <button
+                        type="button"
+                        onClick={() => setOpen(false)}
+                        className="cursor-pointer mt-4 text-cyan-400 text-sm hover:underline"
+                      >
                         Cari kelas dulu
                       </button>
                     </motion.div>
@@ -171,16 +193,30 @@ export default function CartDrawer({
                         className="flex gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04]"
                       >
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-medium text-white truncate">{item.title}</h4>
-                          <p className="text-xs text-cyan-400 font-mono mt-1">{rupiah(item.price)}</p>
+                          <h4 className="text-sm font-medium text-white truncate">
+                            {item.title}
+                          </h4>
+                          <p className="text-xs text-cyan-400 font-mono mt-1">
+                            {rupiah(item.price)}
+                          </p>
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <button onClick={() => onDec(item.id)} className="cursor-pointer p-1 rounded-md bg-white/10 hover:bg-white/20 text-white">
+                          <button
+                            type="button"
+                            onClick={() => onDec(item.id)}
+                            className="cursor-pointer p-1 rounded-md bg-white/10 hover:bg-white/20 text-white"
+                          >
                             <Minus className="w-3 h-3" />
                           </button>
-                          <span className="text-sm font-mono text-white w-4 text-center">{line.qty}</span>
-                          <button onClick={() => onInc(item.id)} className="cursor-pointer p-1 rounded-md bg-white/10 hover:bg-white/20 text-white">
+                          <span className="text-sm font-mono text-white w-4 text-center">
+                            {line.qty}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => onInc(item.id)}
+                            className="cursor-pointer p-1 rounded-md bg-white/10 hover:bg-white/20 text-white"
+                          >
                             <Plus className="w-3 h-3" />
                           </button>
                         </div>
@@ -193,18 +229,24 @@ export default function CartDrawer({
               {full.length > 0 && (
                 <div className="p-5 border-t border-white/10 bg-slate-900">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-slate-400 text-sm">Total Pembayaran</span>
-                    <span className="text-xl font-bold text-white font-mono">{rupiah(total)}</span>
+                    <span className="text-slate-400 text-sm">
+                      Total Pembayaran
+                    </span>
+                    <span className="text-xl font-bold text-white font-mono">
+                      {rupiah(total)}
+                    </span>
                   </div>
 
                   <div className="grid grid-cols-3 gap-3">
                     <button
+                      type="button"
                       onClick={onClear}
                       className="cursor-pointer col-span-1 flex items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-sm font-medium transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                     <button
+                      type="button"
                       onClick={openCheckout}
                       className="cursor-pointer col-span-2 flex items-center justify-center gap-2 rounded-xl bg-white text-slate-950 hover:bg-cyan-50 text-sm font-bold h-12 transition-colors"
                     >

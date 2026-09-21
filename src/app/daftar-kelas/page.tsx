@@ -1,19 +1,32 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Search, Loader2, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { Loader2, Search, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { fetchCatalog, api } from "../../../lib/api";
-import CartButton from "./CartButton";
-import ClassCard from "./ClassCard";
-import CartDrawer from "./CartDrawer";
+import { useEffect, useMemo, useState } from "react";
 import { useLocalCart } from "@/hooks/useLocalCart";
-import { Catalog, Curriculum, Mentor, Me } from "@/types/catalog";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import type {
+  Catalog,
+  ClassItem,
+  Curriculum,
+  Me,
+  Mentor,
+  PackageItem,
+} from "@/types/catalog";
+import { api, fetchCatalog } from "../../../lib/api";
+import CartButton from "./CartButton";
+import CartDrawer from "./CartDrawer";
+import ClassCard from "./ClassCard";
 
-const FlyingParticle = ({ startX, startY }: { startX: number; startY: number }) => {
-  const targetX = typeof window !== 'undefined' ? window.innerWidth - 80 : 0;
+const FlyingParticle = ({
+  startX,
+  startY,
+}: {
+  startX: number;
+  startY: number;
+}) => {
+  const targetX = typeof window !== "undefined" ? window.innerWidth - 80 : 0;
   const targetY = 80;
 
   return (
@@ -33,10 +46,12 @@ export default function DaftarKelasPage() {
   const router = useRouter();
 
   const [catalog, setCatalog] = useState<Catalog | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  const [_err, setErr] = useState<string | null>(null);
   const [q, setQ] = useState("");
 
-  const [flyingItems, setFlyingItems] = useState<{ id: number; x: number; y: number }[]>([]);
+  const [flyingItems, setFlyingItems] = useState<
+    { id: number; x: number; y: number }[]
+  >([]);
 
   const handleAddToCartAnim = (e: React.MouseEvent) => {
     const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -60,26 +75,30 @@ export default function DaftarKelasPage() {
       try {
         const [meRes, settingRes] = await Promise.all([
           api<Me>("/me"),
-          fetch(`${process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000"}/settings/disable_daftar_kelas`)
+          fetch("/api/settings/disable_daftar_kelas"),
         ]);
-        
+
         const isStaff = meRes.role === "admin" || meRes.role === "superadmin";
-        
+
         let disabled = false;
         if (settingRes.ok) {
-           const settingData = await settingRes.json();
-           disabled = settingData.value === "true";
+          const settingData = await settingRes.json();
+          disabled = settingData.value === "true";
         }
-        
+
         if (disabled && !isStaff && !cancel) {
-           router.replace("/");
-           return;
+          router.replace("/");
+          return;
         }
 
         const data = await fetchCatalog();
         if (!cancel) setCatalog(data);
-      } catch (e: any) {
-        if (!cancel) setErr(e?.message ?? "Gagal memuat katalog");
+      } catch (error: unknown) {
+        if (!cancel) {
+          setErr(
+            error instanceof Error ? error.message : "Gagal memuat katalog",
+          );
+        }
       }
     })();
     return () => {
@@ -92,17 +111,21 @@ export default function DaftarKelasPage() {
     return [...(catalog.packages || []), ...(catalog.classes || [])];
   }, [catalog]);
 
-  const { lines, totalCount, inc, dec, clear } = useLocalCart(allItems as any);
+  const { lines, totalCount, inc, dec, clear } = useLocalCart(allItems);
 
   const idxMentor = useMemo(() => {
     const m = new Map<string, Mentor>();
-    catalog?.mentors.forEach((x) => m.set(x.id, x));
+    catalog?.mentors.forEach((x) => {
+      m.set(x.id, x);
+    });
     return m;
   }, [catalog]);
 
   const idxCur = useMemo(() => {
     const m = new Map<string, Curriculum>();
-    catalog?.curriculum.forEach((x) => m.set(x.id, x));
+    catalog?.curriculum.forEach((x) => {
+      m.set(x.id, x);
+    });
     return m;
   }, [catalog]);
 
@@ -112,11 +135,13 @@ export default function DaftarKelasPage() {
 
     if (!s) return allItems;
 
-    return allItems.filter((item: any) => {
-      const mentorsTxt = (item.mentor_ids || [])
+    return allItems.filter((item: ClassItem | PackageItem) => {
+      const mentorIds = "mentor_ids" in item ? item.mentor_ids : [];
+      const curriculumIds = "curriculum_ids" in item ? item.curriculum_ids : [];
+      const mentorsTxt = mentorIds
         .map((id: string) => idxMentor.get(id)?.name?.toLowerCase() ?? "")
         .join(" ");
-      const curs = (item.curriculum_ids || [])
+      const curs = curriculumIds
         .map((id: string) => {
           const cur = idxCur.get(id);
           return (cur?.name || cur?.code || "").toLowerCase();
@@ -134,7 +159,7 @@ export default function DaftarKelasPage() {
 
   const total = useMemo(() => {
     if (!catalog) return 0;
-    const priceById = new Map(allItems.map((k: any) => [k.id, k.price]));
+    const priceById = new Map(allItems.map((k) => [k.id, k.price]));
     return lines.reduce((s, l) => s + (priceById.get(l.id) || 0) * l.qty, 0);
   }, [catalog, allItems, lines]);
 
@@ -164,8 +189,13 @@ export default function DaftarKelasPage() {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs text-cyan-400 mb-4">
               <Sparkles className="w-3 h-3" /> Semester Baru
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-2">Katalog Kelas</h1>
-            <p className="text-slate-400 max-w-lg">Pilih materi yang kamu butuhkan. Tuntaskan satu per satu, raih IPK maksimal.</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-2">
+              Katalog Kelas
+            </h1>
+            <p className="text-slate-400 max-w-lg">
+              Pilih materi yang kamu butuhkan. Tuntaskan satu per satu, raih IPK
+              maksimal.
+            </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -186,27 +216,39 @@ export default function DaftarKelasPage() {
 
         {!catalog ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-64 rounded-3xl bg-white/5 animate-pulse border border-white/5" />
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-64 rounded-3xl bg-white/5 animate-pulse border border-white/5"
+              />
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 rounded-3xl border border-dashed border-white/10 bg-white/[0.02]">
             <p className="text-slate-500">Tidak ada kelas yang ditemukan.</p>
-            <button onClick={() => setQ("")} className="cursor-pointer mt-2 text-cyan-400 hover:underline text-sm">Reset Pencarian</button>
+            <button
+              type="button"
+              onClick={() => setQ("")}
+              className="cursor-pointer mt-2 text-cyan-400 hover:underline text-sm"
+            >
+              Reset Pencarian
+            </button>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((k: any) => {
-              const mentorObjs = (k.mentor_ids || []).map((id: string) => idxMentor.get(id)).filter(Boolean) as Mentor[];
+            {filtered.map((k) => {
+              const mentorIds = "mentor_ids" in k ? k.mentor_ids : [];
+              const mentorObjs = mentorIds
+                .map((id: string) => idxMentor.get(id))
+                .filter(Boolean) as Mentor[];
 
               const combinedMentor: Mentor | undefined = mentorObjs.length
                 ? {
-                  id: mentorObjs.map((m) => m.id).join(","),
-                  name: mentorObjs.map((m) => m.name).join(" & "),
-                  angkatan: mentorObjs[0]?.angkatan ?? 0,
-                  visible: true,
-                }
+                    id: mentorObjs.map((m) => m.id).join(","),
+                    name: mentorObjs.map((m) => m.name).join(" & "),
+                    angkatan: mentorObjs[0]?.angkatan ?? 0,
+                    visible: true,
+                  }
                 : undefined;
 
               return (

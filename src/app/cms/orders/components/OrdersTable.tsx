@@ -2,7 +2,8 @@
 
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import type { Order, OrderStatus } from "../../../../../lib/orders";
+import { API_BASE } from "../../../../../lib/api";
+import type { Order, OrderItem, OrderStatus } from "../../../../../lib/orders";
 
 type Props = {
   rows: Order[];
@@ -14,7 +15,15 @@ type Props = {
   onPageChange: (p: number) => void;
 };
 
-export function OrdersTable({ rows, rupiah, onSetStatus, page, total, limit, onPageChange }: Props) {
+export function OrdersTable({
+  rows,
+  rupiah,
+  onSetStatus,
+  page,
+  total,
+  limit,
+  onPageChange,
+}: Props) {
   const totalPages = Math.ceil(total / limit) || 1;
   const startIndex = (page - 1) * limit + 1;
   const endIndex = Math.min(page * limit, total);
@@ -30,9 +39,7 @@ export function OrdersTable({ rows, rupiah, onSetStatus, page, total, limit, onP
             <th className="px-4 py-3 text-left font-medium w-28">Bukti</th>
             <th className="px-4 py-3 text-left font-medium w-56">Catatan</th>
             <th className="px-4 py-3 text-left font-medium w-32">Status</th>
-            <th className="px-4 py-3 text-left font-medium w-[18rem]">
-              Aksi
-            </th>
+            <th className="px-4 py-3 text-left font-medium w-[18rem]">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -53,15 +60,17 @@ export function OrdersTable({ rows, rupiah, onSetStatus, page, total, limit, onP
                   </span>
                 ) : null}
               </td>
-              <td className="px-4 py-3 text-white/80">
-                {rupiah(row.total)}
-              </td>
+              <td className="px-4 py-3 text-white/80">{rupiah(row.total)}</td>
               <td className="px-4 py-3">
                 {row.items && row.items.length > 0 ? (
                   <ul className="list-none space-y-1 text-xs">
-                    {row.items.map((it: any, idx: number) => (
-                      <li key={idx}>
-                        <span className="text-white/90">{it.item_title || "-"}</span>
+                    {row.items.map((it: OrderItem) => (
+                      <li
+                        key={`${it.item_type ?? "class"}:${it.item_id ?? it.class_id}`}
+                      >
+                        <span className="text-white/90">
+                          {it.item_title || "-"}
+                        </span>
                         <span className="text-white/50 ml-1">x{it.qty}</span>
                         {it.item_type === "package" && (
                           <span className="ml-1 inline-block rounded border border-cyan-500/30 bg-cyan-500/10 px-1 text-[9px] uppercase tracking-wider text-cyan-300">
@@ -78,7 +87,7 @@ export function OrdersTable({ rows, rupiah, onSetStatus, page, total, limit, onP
               <td className="px-4 py-3">
                 {row.proof_url ? (
                   <a
-                    href={row.proof_url}
+                    href={`${API_BASE}/admin/orders/${encodeURIComponent(row.id)}/proof`}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1.5 text-cyan-300 hover:underline"
@@ -90,11 +99,7 @@ export function OrdersTable({ rows, rupiah, onSetStatus, page, total, limit, onP
                 )}
               </td>
               <td className="px-4 py-3 text-white/70">
-                {row.note ? (
-                  row.note
-                ) : (
-                  <span className="text-white/40">—</span>
-                )}
+                {row.note ? row.note : <span className="text-white/40">—</span>}
               </td>
               <td className="px-4 py-3">
                 <span
@@ -103,10 +108,10 @@ export function OrdersTable({ rows, rupiah, onSetStatus, page, total, limit, onP
                       row.status === "approved"
                         ? "bg-emerald-500/15 text-emerald-300 border-emerald-400/20"
                         : row.status === "rejected"
-                        ? "bg-rose-500/15 text-rose-300 border-rose-400/20"
-                        : row.status === "expired"
-                        ? "bg-slate-500/15 text-slate-300 border-slate-400/20"
-                        : "bg-amber-500/15 text-amber-300 border-amber-400/20"
+                          ? "bg-rose-500/15 text-rose-300 border-rose-400/20"
+                          : row.status === "expired"
+                            ? "bg-slate-500/15 text-slate-300 border-slate-400/20"
+                            : "bg-amber-500/15 text-amber-300 border-amber-400/20"
                     }`}
                 >
                   {row.status === "approved" ? "accepted" : row.status}
@@ -146,10 +151,7 @@ export function OrdersTable({ rows, rupiah, onSetStatus, page, total, limit, onP
 
           {rows.length === 0 && (
             <tr>
-              <td
-                colSpan={8}
-                className="px-4 py-6 text-center text-white/60"
-              >
+              <td colSpan={8} className="px-4 py-6 text-center text-white/60">
                 Tidak ada data.
               </td>
             </tr>
@@ -161,6 +163,7 @@ export function OrdersTable({ rows, rupiah, onSetStatus, page, total, limit, onP
       <div className="flex items-center justify-between border-t border-white/10 px-4 py-3 sm:px-6">
         <div className="flex flex-1 justify-between sm:hidden">
           <button
+            type="button"
             onClick={() => onPageChange(page - 1)}
             disabled={page === 1}
             className="relative inline-flex items-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/70 hover:bg-white/10 disabled:opacity-50"
@@ -168,6 +171,7 @@ export function OrdersTable({ rows, rupiah, onSetStatus, page, total, limit, onP
             Previous
           </button>
           <button
+            type="button"
             onClick={() => onPageChange(page + 1)}
             disabled={page === totalPages}
             className="relative ml-3 inline-flex items-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/70 hover:bg-white/10 disabled:opacity-50"
@@ -178,12 +182,22 @@ export function OrdersTable({ rows, rupiah, onSetStatus, page, total, limit, onP
         <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-white/50">
-              Menampilkan <span className="font-medium text-white/80">{total > 0 ? startIndex : 0}</span> hingga <span className="font-medium text-white/80">{endIndex}</span> dari <span className="font-medium text-white/80">{total}</span> hasil
+              Menampilkan{" "}
+              <span className="font-medium text-white/80">
+                {total > 0 ? startIndex : 0}
+              </span>{" "}
+              hingga{" "}
+              <span className="font-medium text-white/80">{endIndex}</span> dari{" "}
+              <span className="font-medium text-white/80">{total}</span> hasil
             </p>
           </div>
           <div>
-            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <nav
+              className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+              aria-label="Pagination"
+            >
               <button
+                type="button"
                 onClick={() => onPageChange(page - 1)}
                 disabled={page === 1}
                 className="relative inline-flex items-center rounded-l-md px-2 py-2 text-white/40 ring-1 ring-inset ring-white/10 hover:bg-white/5 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
@@ -191,12 +205,13 @@ export function OrdersTable({ rows, rupiah, onSetStatus, page, total, limit, onP
                 <span className="sr-only">Previous</span>
                 <span aria-hidden="true">&laquo; Prev</span>
               </button>
-              
+
               <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-white/80 ring-1 ring-inset ring-white/10">
                 Halaman {page} dari {totalPages}
               </span>
 
               <button
+                type="button"
                 onClick={() => onPageChange(page + 1)}
                 disabled={page === totalPages}
                 className="relative inline-flex items-center rounded-r-md px-2 py-2 text-white/40 ring-1 ring-inset ring-white/10 hover:bg-white/5 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
