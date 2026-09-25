@@ -9,6 +9,16 @@ export type OrderItem = {
   item_title?: string;
   qty: number;
   price: number;
+  list_price?: number | null;
+  offer_id?: string | null;
+  meeting_count?: number | null;
+  offer_snapshot?: {
+    items?: Array<{
+      class_id: string;
+      class_offer_id: string;
+      meeting_count: number;
+    }>;
+  } | null;
 };
 
 export type Order = {
@@ -32,10 +42,15 @@ export function fetchOrders(page = 1, limit = 20, search = "", status = "") {
   });
   if (search) params.set("search", search);
   if (status) params.set("status", status);
-  return api<{total: number, data: Order[]}>(`/admin/orders?${params.toString()}`);
+  return api<{ total: number; data: Order[] }>(
+    `/admin/orders?${params.toString()}`,
+  );
 }
 
-export function updateOrderStatus(id: string, status: Exclude<OrderStatus, "pending">) {
+export function updateOrderStatus(
+  id: string,
+  status: Exclude<OrderStatus, "pending">,
+) {
   return api<Order>(`/admin/orders/${id}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),

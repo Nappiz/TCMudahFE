@@ -111,7 +111,8 @@ export default function DaftarKelasPage() {
     return [...(catalog.packages || []), ...(catalog.classes || [])];
   }, [catalog]);
 
-  const { lines, totalCount, inc, dec, clear } = useLocalCart(allItems);
+  const { lines, totalCount, addClass, addPackage, remove, clear } =
+    useLocalCart();
 
   const idxMentor = useMemo(() => {
     const m = new Map<string, Mentor>();
@@ -159,9 +160,65 @@ export default function DaftarKelasPage() {
 
   const total = useMemo(() => {
     if (!catalog) return 0;
-    const priceById = new Map(allItems.map((k) => [k.id, k.price]));
-    return lines.reduce((s, l) => s + (priceById.get(l.id) || 0) * l.qty, 0);
-  }, [catalog, allItems, lines]);
+    const classById = new Map(catalog.classes.map((item) => [item.id, item]));
+    const packageById = new Map(
+      catalog.packages.map((item) => [item.id, item]),
+    );
+    return lines.reduce((sum, line) => {
+      if (line.itemType === "package") {
+        return sum + (packageById.get(line.itemId)?.price ?? 0);
+      }
+      const klass = classById.get(line.itemId);
+      return (
+        sum +
+        (klass?.offers.find((offer) => offer.id === line.offerId)?.price ?? 0)
+      );
+    }, 0);
+  }, [catalog, lines]);
+
+  function selectClassOffer(classId: string, offerId: string) {
+    const conflictingPackages = lines.filter((line) => {
+      if (line.itemType !== "package") return false;
+      return catalog?.packages
+        .find((item) => item.id === line.itemId)
+        ?.class_ids.includes(classId);
+    });
+    if (
+      conflictingPackages.length > 0 &&
+      !window.confirm(
+        "Kelas ini sudah termasuk dalam bundle di keranjang. Hapus bundle dan ambil kelas satuan?",
+      )
+    ) {
+      return;
+    }
+    conflictingPackages.forEach((line) => {
+      remove(line.key);
+    });
+    addClass(classId, offerId);
+  }
+
+  function selectPackage(packageId: string) {
+    const selectedPackage = catalog?.packages.find(
+      (item) => item.id === packageId,
+    );
+    const conflictingClasses = lines.filter(
+      (line) =>
+        line.itemType === "class" &&
+        selectedPackage?.class_ids.includes(line.itemId),
+    );
+    if (
+      conflictingClasses.length > 0 &&
+      !window.confirm(
+        "Sebagian kelas di bundle ini sudah ada di keranjang. Hapus kelas satuan dan ambil bundle?",
+      )
+    ) {
+      return;
+    }
+    conflictingClasses.forEach((line) => {
+      remove(line.key);
+    });
+    addPackage(packageId);
+  }
 
   if (!authChecked) {
     return (
@@ -250,6 +307,9 @@ export default function DaftarKelasPage() {
                     visible: true,
                   }
                 : undefined;
+              const selectedLine = lines.find(
+                (line) => line.itemType === "class" && line.itemId === k.id,
+              );
 
               return (
                 <ClassCard
@@ -257,9 +317,19 @@ export default function DaftarKelasPage() {
                   item={k}
                   mentor={combinedMentor}
                   idxCur={idxCur}
-                  qty={lines.find((l) => l.id === k.id)?.qty ?? 0}
-                  onInc={inc}
-                  onDec={dec}
+                  selectedOfferId={
+                    selectedLine?.itemType === "class"
+                      ? selectedLine.offerId
+                      : undefined
+                  }
+                  selected={lines.some((line) => line.itemId === k.id)}
+                  onSelectClass={selectClassOffer}
+                  onSelectPackage={selectPackage}
+                  onRemove={(item) =>
+                    remove(
+                      `${"class_ids" in item ? "package" : "class"}:${item.id}`,
+                    )
+                  }
                   onAddToCartAnim={handleAddToCartAnim}
                 />
               );
@@ -272,8 +342,7 @@ export default function DaftarKelasPage() {
           lines={lines}
           classes={catalog?.classes ?? []}
           packages={catalog?.packages ?? []}
-          onInc={inc}
-          onDec={dec}
+          onRemove={remove}
           onClear={clear}
           total={total}
         />

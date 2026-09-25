@@ -2,25 +2,24 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { fetchMe, type User } from "../../lib/admin";
-import { fetchMentors, type Mentor } from "../../lib/mentors";
-import { fetchCurriculum, type CurriculumItem } from "../../lib/curriculum";
-
 import {
-  fetchClasses,
-  createClassItem,
-  updateClassItem,
-  deleteClassItem,
-  patchClassVisibility,
   type ClassItem,
+  createClassItem,
+  deleteClassItem,
+  fetchClasses,
+  patchClassVisibility,
+  updateClassItem,
 } from "../../lib/classes";
+import { type CurriculumItem, fetchCurriculum } from "../../lib/curriculum";
+import { fetchMentors, type Mentor } from "../../lib/mentors";
 
 import {
-  fetchPackages,
   createPackageItem,
-  updatePackageItem,
   deletePackageItem,
-  patchPackageVisibility,
+  fetchPackages,
   type PackageItem,
+  patchPackageVisibility,
+  updatePackageItem,
 } from "../../lib/packages";
 
 import type { UnifiedForm } from "../app/cms/classes/components/ClassesFormModal";
@@ -61,14 +60,22 @@ export function useClasses() {
         setPackages(pkgs);
         setMentors(ments);
         setCurriculum(curs);
-      } catch (e: any) {
-        if (!cancel) setErr(e?.message ?? "Gagal memuat data katalog.");
+      } catch (error: unknown) {
+        if (!cancel) {
+          setErr(
+            error instanceof Error
+              ? error.message
+              : "Gagal memuat data katalog.",
+          );
+        }
       } finally {
         if (!cancel) setLoading(false);
       }
     })();
 
-    return () => { cancel = true; };
+    return () => {
+      cancel = true;
+    };
   }, []);
 
   const canWrite = useMemo(
@@ -78,13 +85,17 @@ export function useClasses() {
 
   const idxMentor = useMemo(() => {
     const m = new Map<string, Mentor>();
-    mentors.forEach((x) => m.set(x.id, x));
+    mentors.forEach((x) => {
+      m.set(x.id, x);
+    });
     return m;
   }, [mentors]);
 
   const idxCurriculum = useMemo(() => {
     const m = new Map<string, CurriculumItem>();
-    curriculum.forEach((x) => m.set(x.id, x));
+    curriculum.forEach((x) => {
+      m.set(x.id, x);
+    });
     return m;
   }, [curriculum]);
 
@@ -97,7 +108,12 @@ export function useClasses() {
         .map((id) => idxMentor.get(id)?.name?.toLowerCase() ?? "")
         .join(" ");
       const curs = (k.curriculum_ids || [])
-        .map((id) => idxCurriculum.get(id)?.name?.toLowerCase() ?? idxCurriculum.get(id)?.code?.toLowerCase() ?? "")
+        .map(
+          (id) =>
+            idxCurriculum.get(id)?.name?.toLowerCase() ??
+            idxCurriculum.get(id)?.code?.toLowerCase() ??
+            "",
+        )
         .join(" ");
 
       return (
@@ -115,7 +131,10 @@ export function useClasses() {
 
     return packages.filter((p) => {
       const classNames = (p.class_ids || [])
-        .map(cid => classes.find(c => c.id === cid)?.title?.toLowerCase() ?? "")
+        .map(
+          (cid) =>
+            classes.find((c) => c.id === cid)?.title?.toLowerCase() ?? "",
+        )
         .join(" ");
 
       return (
@@ -133,31 +152,68 @@ export function useClasses() {
       maximumFractionDigits: 0,
     }).format(n);
 
-
   async function createItem(form: UnifiedForm, type: "class" | "package") {
     if (type === "class") {
-      const payload = { ...form, mentor_ids: form.mentor_ids, curriculum_ids: form.curriculum_ids };
-      const created = await createClassItem(payload as any);
+      const payload = {
+        title: form.title,
+        description: form.description,
+        mentor_ids: form.mentor_ids,
+        curriculum_ids: form.curriculum_ids,
+        base_price_per_meeting: form.base_price_per_meeting,
+        offers: form.offers,
+        visible: form.visible,
+      };
+      const created = await createClassItem(payload);
       setClasses((prev) => [created, ...prev]);
       return created;
     } else {
-      const payload = { title: form.title, description: form.description, price: form.price, visible: form.visible, class_ids: form.class_ids };
-      const created = await createPackageItem(payload as any);
+      const payload = {
+        title: form.title,
+        description: form.description,
+        price: form.price,
+        visible: form.visible,
+        class_ids: form.class_ids,
+        items: form.items,
+      };
+      const created = await createPackageItem(payload);
       setPackages((prev) => [created, ...prev]);
       return created;
     }
   }
 
-  async function updateItem(id: string, form: UnifiedForm, type: "class" | "package") {
+  async function updateItem(
+    id: string,
+    form: UnifiedForm,
+    type: "class" | "package",
+  ) {
     if (type === "class") {
-      const payload = { ...form, mentor_ids: form.mentor_ids, curriculum_ids: form.curriculum_ids };
-      const updated = await updateClassItem(id, payload as any);
-      setClasses((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      const payload = {
+        title: form.title,
+        description: form.description,
+        mentor_ids: form.mentor_ids,
+        curriculum_ids: form.curriculum_ids,
+        base_price_per_meeting: form.base_price_per_meeting,
+        offers: form.offers,
+        visible: form.visible,
+      };
+      const updated = await updateClassItem(id, payload);
+      setClasses((prev) =>
+        prev.map((i) => (i.id === updated.id ? updated : i)),
+      );
       return updated;
     } else {
-      const payload = { title: form.title, description: form.description, price: form.price, visible: form.visible, class_ids: form.class_ids };
-      const updated = await updatePackageItem(id, payload as any);
-      setPackages((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      const payload = {
+        title: form.title,
+        description: form.description,
+        price: form.price,
+        visible: form.visible,
+        class_ids: form.class_ids,
+        items: form.items,
+      };
+      const updated = await updatePackageItem(id, payload);
+      setPackages((prev) =>
+        prev.map((i) => (i.id === updated.id ? updated : i)),
+      );
       return updated;
     }
   }
@@ -172,14 +228,37 @@ export function useClasses() {
     }
   }
 
-  async function toggleVisible(item: any, type: "class" | "package") {
+  async function toggleVisible(
+    item: ClassItem | PackageItem,
+    type: "class" | "package",
+  ) {
     if (type === "class") {
       const updated = await patchClassVisibility(item.id, !item.visible);
-      setClasses((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+      setClasses((prev) =>
+        prev.map((x) =>
+          x.id === updated.id
+            ? {
+                ...x,
+                ...updated,
+                offers: updated.offers?.length ? updated.offers : x.offers,
+              }
+            : x,
+        ),
+      );
       return updated;
     } else {
       const updated = await patchPackageVisibility(item.id, !item.visible);
-      setPackages((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+      setPackages((prev) =>
+        prev.map((x) =>
+          x.id === updated.id
+            ? {
+                ...x,
+                ...updated,
+                items: updated.items?.length ? updated.items : x.items,
+              }
+            : x,
+        ),
+      );
       return updated;
     }
   }

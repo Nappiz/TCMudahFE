@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Cart, CartLine, ClassItem, PackageItem } from "@/types/catalog";
+import type { Cart, CartLine } from "@/types/catalog";
 
-const LS_KEY = "tcmudah_cart_v1";
+const LS_KEY = "tcmudah_cart_v2";
 
-export function useLocalCart(classes: (ClassItem | PackageItem)[] | null) {
+export function useLocalCart() {
   const [cart, setCart] = useState<Cart>({});
 
   // load from LS
@@ -21,33 +21,36 @@ export function useLocalCart(classes: (ClassItem | PackageItem)[] | null) {
     localStorage.setItem(LS_KEY, JSON.stringify(cart));
   }, [cart]);
 
-  const lines: CartLine[] = useMemo(
-    () =>
-      Object.entries(cart)
-        .map(([id, qty]) => ({ id, qty }))
-        .filter(
-          (l) => l.qty > 0 && (classes?.some((k) => k.id === l.id) ?? false),
-        ),
-    [cart, classes],
-  );
+  const lines: CartLine[] = useMemo(() => Object.values(cart), [cart]);
 
-  const totalCount = lines.reduce((s, l) => s + l.qty, 0);
+  const totalCount = lines.length;
 
-  function inc(id: string) {
-    setCart((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
+  function addClass(classId: string, offerId: string) {
+    const key = `class:${classId}`;
+    setCart((cart) => ({
+      ...cart,
+      [key]: { key, itemType: "class", itemId: classId, offerId },
+    }));
   }
-  function dec(id: string) {
-    setCart((c) => {
-      const next = Math.max(0, (c[id] ?? 0) - 1);
-      const cp = { ...c };
-      if (next === 0) delete cp[id];
-      else cp[id] = next;
-      return cp;
+
+  function addPackage(packageId: string) {
+    const key = `package:${packageId}`;
+    setCart((cart) => ({
+      ...cart,
+      [key]: { key, itemType: "package", itemId: packageId },
+    }));
+  }
+
+  function remove(key: string) {
+    setCart((cart) => {
+      const next = { ...cart };
+      delete next[key];
+      return next;
     });
   }
   function clear() {
     setCart({});
   }
 
-  return { cart, lines, totalCount, inc, dec, clear };
+  return { cart, lines, totalCount, addClass, addPackage, remove, clear };
 }

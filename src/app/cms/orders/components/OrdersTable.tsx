@@ -71,6 +71,11 @@ export function OrdersTable({
                         <span className="text-white/90">
                           {it.item_title || "-"}
                         </span>
+                        {it.meeting_count ? (
+                          <span className="ml-1 text-cyan-300">
+                            • {it.meeting_count} pertemuan
+                          </span>
+                        ) : null}
                         <span className="text-white/50 ml-1">x{it.qty}</span>
                         {it.item_type === "package" && (
                           <span className="ml-1 inline-block rounded border border-cyan-500/30 bg-cyan-500/10 px-1 text-[9px] uppercase tracking-wider text-cyan-300">

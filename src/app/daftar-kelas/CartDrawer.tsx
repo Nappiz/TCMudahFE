@@ -2,13 +2,14 @@
 
 import imageCompression from "browser-image-compression";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { ArrowRight, ShoppingBag, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useGlobalError } from "@/components/providers/ErrorProvider";
 import type {
   CartLine,
   CheckoutInfo,
   ClassItem,
+  ClassOffer,
   PackageItem,
 } from "@/types/catalog";
 import { fetchCheckoutInfo, postJSON, uploadFile } from "../../../lib/api";
@@ -21,8 +22,7 @@ export default function CartDrawer({
   lines,
   classes,
   packages = [],
-  onInc,
-  onDec,
+  onRemove,
   onClear,
   total,
 }: {
@@ -30,8 +30,7 @@ export default function CartDrawer({
   lines: CartLine[];
   classes: ClassItem[];
   packages?: PackageItem[];
-  onInc: (id: string) => void;
-  onDec: (id: string) => void;
+  onRemove: (key: string) => void;
   onClear: () => void;
   total: number;
 }) {
@@ -46,23 +45,38 @@ export default function CartDrawer({
     return () => el.removeEventListener("click", fn);
   }, [openButtonSelector]);
 
-  const map = useMemo(() => {
-    const m = new Map<string, ClassItem | PackageItem>();
-    classes.forEach((c) => {
-      m.set(c.id, c);
-    });
-    packages.forEach((p) => {
-      m.set(p.id, p);
-    });
-    return m;
+  const maps = useMemo(() => {
+    return {
+      classes: new Map(classes.map((item) => [item.id, item])),
+      packages: new Map(packages.map((item) => [item.id, item])),
+    };
   }, [classes, packages]);
 
-  const full = lines
-    .map((l) => ({ line: l, item: map.get(l.id) }))
-    .filter(
-      (entry): entry is { line: CartLine; item: ClassItem | PackageItem } =>
-        entry.item !== undefined,
+  type ResolvedLine =
+    | {
+        line: Extract<CartLine, { itemType: "package" }>;
+        item: PackageItem;
+        offer?: undefined;
+      }
+    | {
+        line: Extract<CartLine, { itemType: "class" }>;
+        item: ClassItem;
+        offer: ClassOffer;
+      };
+
+  const full = lines.reduce<ResolvedLine[]>((resolved, line) => {
+    if (line.itemType === "package") {
+      const item = maps.packages.get(line.itemId);
+      if (item) resolved.push({ line, item });
+      return resolved;
+    }
+    const item = maps.classes.get(line.itemId);
+    const offer = item?.offers.find(
+      (candidate) => candidate.id === line.offerId,
     );
+    if (item && offer) resolved.push({ line, item, offer });
+    return resolved;
+  }, []);
 
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
@@ -104,10 +118,11 @@ export default function CartDrawer({
       const compressedFile = await imageCompression(file, options);
       const proofPath = await uploadFile(compressedFile);
 
-      const items = full.map(({ line, item }) => ({
-        item_id: line.id,
-        item_type: "class_ids" in item ? "package" : "class",
-        qty: line.qty,
+      const items = full.map(({ line }) => ({
+        item_id: line.itemId,
+        item_type: line.itemType,
+        offer_id: line.itemType === "class" ? line.offerId : undefined,
+        qty: 1,
       }));
 
       await postJSON("/orders", {
@@ -183,9 +198,9 @@ export default function CartDrawer({
                       </button>
                     </motion.div>
                   ) : (
-                    full.map(({ line, item }) => (
+                    full.map(({ line, item, offer }) => (
                       <motion.div
-                        key={item.id}
+                        key={line.key}
                         layout
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -197,27 +212,23 @@ export default function CartDrawer({
                             {item.title}
                           </h4>
                           <p className="text-xs text-cyan-400 font-mono mt-1">
-                            {rupiah(item.price)}
+                            {rupiah(offer?.price ?? item.price)}
                           </p>
+                          {offer && (
+                            <p className="mt-1 text-xs text-slate-500">
+                              {offer.meeting_count} pertemuan
+                            </p>
+                          )}
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center">
                           <button
                             type="button"
-                            onClick={() => onDec(item.id)}
-                            className="cursor-pointer p-1 rounded-md bg-white/10 hover:bg-white/20 text-white"
+                            onClick={() => onRemove(line.key)}
+                            aria-label={`Hapus ${item.title}`}
+                            className="cursor-pointer rounded-lg p-2 text-slate-500 hover:bg-red-500/10 hover:text-red-400"
                           >
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <span className="text-sm font-mono text-white w-4 text-center">
-                            {line.qty}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => onInc(item.id)}
-                            className="cursor-pointer p-1 rounded-md bg-white/10 hover:bg-white/20 text-white"
-                          >
-                            <Plus className="w-3 h-3" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </motion.div>
