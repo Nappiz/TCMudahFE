@@ -101,7 +101,7 @@ export async function uploadFile(file: File): Promise<string> {
 export async function fetchCatalog(): Promise<Catalog> {
   const response = await fetch(`${API_BASE}/catalog`, {
     credentials: "omit",
-    cache: "default",
+    cache: "no-store",
   });
   return json<Catalog>(response);
 }

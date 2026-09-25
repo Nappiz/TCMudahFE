@@ -71,6 +71,33 @@ export default function DaftarKelasPage() {
   useEffect(() => {
     if (!authChecked) return;
     let cancel = false;
+
+    const refreshCatalog = async () => {
+      try {
+        const data = await fetchCatalog();
+        if (!cancel) {
+          setCatalog(data);
+          setErr(null);
+        }
+      } catch (error: unknown) {
+        if (!cancel) {
+          setErr(
+            error instanceof Error ? error.message : "Gagal memuat katalog",
+          );
+        }
+      }
+    };
+
+    const handleFocus = () => {
+      void refreshCatalog();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void refreshCatalog();
+      }
+    };
+
     (async () => {
       try {
         const [meRes, settingRes] = await Promise.all([
@@ -91,8 +118,7 @@ export default function DaftarKelasPage() {
           return;
         }
 
-        const data = await fetchCatalog();
-        if (!cancel) setCatalog(data);
+        await refreshCatalog();
       } catch (error: unknown) {
         if (!cancel) {
           setErr(
@@ -101,8 +127,14 @@ export default function DaftarKelasPage() {
         }
       }
     })();
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       cancel = true;
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [authChecked, router]);
 
