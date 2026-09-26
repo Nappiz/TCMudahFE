@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useGlobalError } from "@/components/providers/ErrorProvider";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 import { useOrders } from "@/hooks/useOrders";
 import type { Order, OrderStatus } from "../../../../../lib/orders";
 import { OrderDetailModal } from "./OrderDetailModal";
@@ -11,6 +12,8 @@ import { OrdersTable } from "./OrdersTable";
 export default function OrdersPage() {
   const { showError } = useGlobalError();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [expireTarget, setExpireTarget] = useState<Order | null>(null);
+  const [expiringId, setExpiringId] = useState<string | null>(null);
   const [approving, setApproving] = useState(false);
   const {
     filtered,
@@ -34,8 +37,12 @@ export default function OrdersPage() {
   ) {
     try {
       await setStatus(id, status);
-    } catch (e: unknown) {
-      showError(e instanceof Error ? e.message : "Gagal memperbarui status");
+    } catch (errorValue: unknown) {
+      showError(
+        errorValue instanceof Error
+          ? errorValue.message
+          : "Gagal memperbarui status",
+      );
     }
   }
 
@@ -45,51 +52,71 @@ export default function OrdersPage() {
     try {
       await setStatus(selectedOrder.id, "approved");
       setSelectedOrder(null);
-    } catch (e: unknown) {
-      showError(e instanceof Error ? e.message : "Gagal menyetujui order");
+    } catch (errorValue: unknown) {
+      showError(
+        errorValue instanceof Error
+          ? errorValue.message
+          : "Gagal menyetujui order",
+      );
     } finally {
       setApproving(false);
     }
   }
 
-  if (loading) {
-    return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white/70">
-        Memuat orders…
-      </div>
-    );
-  }
-
-  if (err) {
-    return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-red-300">
-        {err}
-      </div>
-    );
+  async function handleExpireConfirm() {
+    if (!expireTarget || expiringId) return;
+    const targetId = expireTarget.id;
+    setExpiringId(targetId);
+    try {
+      await setStatus(targetId, "expired");
+      setExpireTarget(null);
+    } catch (errorValue: unknown) {
+      showError(
+        errorValue instanceof Error
+          ? errorValue.message
+          : "Gagal mengubah order menjadi expired",
+      );
+    } finally {
+      setExpiringId(null);
+    }
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-6">
       <OrdersHeader
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={(value) => {
+          setSearch(value);
+          setPage(1);
+        }}
         statusFilter={statusFilter}
-        onStatusFilterChange={(val) => {
-          setStatusFilter(val);
+        onStatusFilterChange={(value) => {
+          setStatusFilter(value);
           setPage(1);
         }}
       />
 
-      <OrdersTable
-        rows={filtered}
-        rupiah={rupiah}
-        onSetStatus={handleSetStatus}
-        onView={setSelectedOrder}
-        page={page}
-        total={total}
-        limit={limit}
-        onPageChange={setPage}
-      />
+      {loading ? (
+        <OrdersLoadingState />
+      ) : err ? (
+        <div className="rounded-2xl border border-rose-400/15 bg-rose-400/[0.06] p-5 text-sm text-rose-200">
+          {err}
+        </div>
+      ) : (
+        <OrdersTable
+          rows={filtered}
+          rupiah={rupiah}
+          onSetStatus={handleSetStatus}
+          onExpire={setExpireTarget}
+          expiringId={expiringId}
+          onView={setSelectedOrder}
+          page={page}
+          total={total}
+          limit={limit}
+          onPageChange={setPage}
+        />
+      )}
+
       {selectedOrder && (
         <OrderDetailModal
           order={selectedOrder}
@@ -99,6 +126,66 @@ export default function OrdersPage() {
           onApprove={handleApprove}
         />
       )}
+
+      <ConfirmModal
+        open={expireTarget !== null}
+        onClose={() => {
+          if (!expiringId) setExpireTarget(null);
+        }}
+        title="Expire order ini?"
+        message={
+          <div className="space-y-2">
+            <p>
+              Order dari{" "}
+              <strong>
+                {expireTarget?.user_name ||
+                  expireTarget?.user_email ||
+                  "peserta ini"}
+              </strong>{" "}
+              akan ditandai sebagai expired.
+            </p>
+            <p className="text-sm text-white/55">
+              Status order berubah, tetapi akses enrollment yang sudah diberikan
+              tetap tersimpan.
+            </p>
+          </div>
+        }
+        confirmText="Ya, expire order"
+        cancelText="Batal"
+        variant="danger"
+        loading={expiringId !== null}
+        onConfirm={handleExpireConfirm}
+      />
+    </div>
+  );
+}
+
+function OrdersLoadingState() {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0c111a]/80">
+      <div className="flex h-12 items-center gap-4 border-b border-white/[0.06] px-5">
+        {["w-16", "w-28", "w-20", "w-16", "w-14"].map((width) => (
+          <div
+            key={width}
+            className={`h-2 animate-pulse rounded-full bg-white/[0.08] ${width}`}
+          />
+        ))}
+      </div>
+      <div className="space-y-1 p-2">
+        {["one", "two", "three", "four", "five"].map((key) => (
+          <div
+            key={key}
+            className="grid grid-cols-[1fr_1.4fr_1.2fr_0.7fr_0.7fr] gap-4 rounded-xl px-3 py-5"
+          >
+            {["w-20", "w-36", "w-28", "w-16", "w-14"].map((width) => (
+              <div
+                key={width}
+                className={`h-3 animate-pulse rounded-full bg-white/[0.06] ${width}`}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
