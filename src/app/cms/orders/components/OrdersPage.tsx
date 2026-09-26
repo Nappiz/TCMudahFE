@@ -1,15 +1,32 @@
 "use client";
 
+import { useState } from "react";
+import { useGlobalError } from "@/components/providers/ErrorProvider";
 import { useOrders } from "@/hooks/useOrders";
+import type { Order, OrderStatus } from "../../../../../lib/orders";
+import { OrderDetailModal } from "./OrderDetailModal";
 import { OrdersHeader } from "./OrdersHeader";
 import { OrdersTable } from "./OrdersTable";
-import type { OrderStatus } from "../../../../../lib/orders";
-import { useGlobalError } from "@/components/providers/ErrorProvider";
 
 export default function OrdersPage() {
   const { showError } = useGlobalError();
-  const { filtered, search, setSearch, statusFilter, setStatusFilter, page, setPage, limit, total, err, loading, rupiah, setStatus } =
-    useOrders();
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [approving, setApproving] = useState(false);
+  const {
+    filtered,
+    search,
+    setSearch,
+    statusFilter,
+    setStatusFilter,
+    page,
+    setPage,
+    limit,
+    total,
+    err,
+    loading,
+    rupiah,
+    setStatus,
+  } = useOrders();
 
   async function handleSetStatus(
     id: string,
@@ -17,8 +34,21 @@ export default function OrdersPage() {
   ) {
     try {
       await setStatus(id, status);
-    } catch (e: any) {
-      showError(e?.message ?? "Gagal memperbarui status");
+    } catch (e: unknown) {
+      showError(e instanceof Error ? e.message : "Gagal memperbarui status");
+    }
+  }
+
+  async function handleApprove() {
+    if (!selectedOrder) return;
+    setApproving(true);
+    try {
+      await setStatus(selectedOrder.id, "approved");
+      setSelectedOrder(null);
+    } catch (e: unknown) {
+      showError(e instanceof Error ? e.message : "Gagal menyetujui order");
+    } finally {
+      setApproving(false);
     }
   }
 
@@ -40,9 +70,9 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-5">
-      <OrdersHeader 
-        search={search} 
-        onSearchChange={setSearch} 
+      <OrdersHeader
+        search={search}
+        onSearchChange={setSearch}
         statusFilter={statusFilter}
         onStatusFilterChange={(val) => {
           setStatusFilter(val);
@@ -54,11 +84,21 @@ export default function OrdersPage() {
         rows={filtered}
         rupiah={rupiah}
         onSetStatus={handleSetStatus}
+        onView={setSelectedOrder}
         page={page}
         total={total}
         limit={limit}
         onPageChange={setPage}
       />
+      {selectedOrder && (
+        <OrderDetailModal
+          order={selectedOrder}
+          rupiah={rupiah}
+          approving={approving}
+          onClose={() => setSelectedOrder(null)}
+          onApprove={handleApprove}
+        />
+      )}
     </div>
   );
 }

@@ -107,11 +107,14 @@ export default function ClassesSection({
                     type="checkbox"
                     className="accent-emerald-400"
                     checked={checked}
-                    disabled={loadingEnrollments}
+                    disabled={loadingEnrollments || (c.archived && !checked)}
                     onChange={() => onToggleClass(c.id)}
                   />
                   <CheckCircle2 className="h-4 w-4" />
                   {c.title}
+                  {c.archived && (
+                    <span className="text-xs text-amber-300">(diarsipkan)</span>
+                  )}
                 </label>
               );
             })}

@@ -11,6 +11,7 @@ export type User = {
 export type ClassItem = {
   id: string;
   title: string;
+  archived?: boolean;
 };
 
 export type Enrollment = {

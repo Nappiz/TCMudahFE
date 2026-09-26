@@ -17,6 +17,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useGlobalError } from "@/components/providers/ErrorProvider";
 import { Button } from "@/components/ui/Button";
+import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { toEmbedUrl } from "../../../../../lib/embed";
 
 type Role = "superadmin" | "admin" | "mentor" | "peserta";
@@ -77,6 +78,7 @@ export default function CMSMaterialsByClassPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const { showError } = useGlobalError();
+  const { confirm, modal: confirmModal } = useConfirmModal();
 
   // UI state
   const [q, setQ] = useState("");
@@ -201,7 +203,15 @@ export default function CMSMaterialsByClassPage() {
 
   async function remove(it: Material) {
     if (!canWrite) return;
-    if (!confirm(`Hapus materi "${it.title}"?`)) return;
+    if (
+      !(await confirm({
+        title: "Hapus materi?",
+        message: `Hapus materi "${it.title}"?`,
+        confirmText: "Hapus",
+        variant: "danger",
+      }))
+    )
+      return;
     try {
       await api(`/admin/materials/${it.id}`, { method: "DELETE" });
       setMaterials((prev) => prev.filter((x) => x.id !== it.id));
@@ -475,6 +485,7 @@ export default function CMSMaterialsByClassPage() {
           </div>
         </div>
       )}
+      {confirmModal}
     </div>
   );
 }

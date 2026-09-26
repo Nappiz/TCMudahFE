@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useGlobalError } from "@/components/providers/ErrorProvider";
+import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { useClasses } from "@/hooks/useClasses";
 import type { ClassItem } from "../../../../../lib/classes";
 import type { PackageItem } from "../../../../../lib/packages";
@@ -12,6 +13,7 @@ import { ClassesTable } from "./ClassesTable";
 
 export default function ClassesPage() {
   const { showError } = useGlobalError();
+  const { confirm, modal: confirmModal } = useConfirmModal();
   const {
     mentors,
     curriculum,
@@ -164,9 +166,12 @@ export default function ClassesPage() {
   async function handleDelete(it: ClassItem | PackageItem) {
     if (!canWrite) return;
     if (
-      !window.confirm(
-        `Hapus ${activeTab === "package" ? "paket" : "kelas"} "${it.title}"?`,
-      )
+      !(await confirm({
+        title: `Hapus ${activeTab === "package" ? "paket" : "kelas"}?`,
+        message: `Hapus ${activeTab === "package" ? "paket" : "kelas"} "${it.title}"?`,
+        confirmText: "Hapus",
+        variant: "danger",
+      }))
     )
       return;
     try {
@@ -264,6 +269,7 @@ export default function ClassesPage() {
         onClose={() => !saving && setModalOpen(false)}
         onSubmit={handleSave}
       />
+      {confirmModal}
     </div>
   );
 }

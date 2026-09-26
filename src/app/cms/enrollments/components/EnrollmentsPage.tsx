@@ -48,7 +48,8 @@ export default function EnrollmentsPage() {
             </div>
             <h1 className="text-xl font-bold text-white">Enrollments</h1>
             <p className="text-white/70 text-sm">
-              Daftar menampilkan peserta dengan order <b>approved</b>.
+              Daftar menampilkan peserta dengan order <b>approved</b> atau akses
+              kelas aktif.
             </p>
           </div>
           <div className="flex items-center gap-2">

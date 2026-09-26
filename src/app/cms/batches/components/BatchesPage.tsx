@@ -5,6 +5,7 @@ import { Plus, Edit2, CheckCircle2, Circle, Trash2, ShieldAlert } from "lucide-r
 import { api, postJSON, patchJSON, deleteJSON } from "../../../../../lib/api";
 import { useRouter } from "next/navigation";
 import { useGlobalError } from "@/components/providers/ErrorProvider";
+import { useConfirmModal } from "@/hooks/useConfirmModal";
 
 type Batch = {
   id: string;
@@ -18,6 +19,7 @@ export default function BatchesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { showError } = useGlobalError();
+  const { confirm, modal: confirmModal } = useConfirmModal();
   
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Batch | null>(null);
@@ -56,7 +58,15 @@ export default function BatchesPage() {
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!window.confirm(`Hapus batch "${name}"?`)) return;
+    if (
+      !(await confirm({
+        title: "Hapus batch?",
+        message: `Hapus batch "${name}"?`,
+        confirmText: "Hapus",
+        variant: "danger",
+      }))
+    )
+      return;
     try {
       await deleteJSON(`/admin/batches/${id}`);
       loadBatches();
@@ -67,7 +77,14 @@ export default function BatchesPage() {
 
   async function handleToggleActive(b: Batch) {
     if (b.is_active) return; // Already active
-    if (!window.confirm(`Aktifkan batch "${b.name}"? Ini akan menonaktifkan batch lain.`)) return;
+    if (
+      !(await confirm({
+        title: "Aktifkan batch?",
+        message: `Aktifkan batch "${b.name}"? Ini akan menonaktifkan batch lain.`,
+        confirmText: "Aktifkan",
+      }))
+    )
+      return;
     try {
       await patchJSON(`/admin/batches/${b.id}`, { is_active: true });
       loadBatches();
@@ -224,6 +241,7 @@ export default function BatchesPage() {
           </div>
         </div>
       )}
+      {confirmModal}
     </div>
   );
 }

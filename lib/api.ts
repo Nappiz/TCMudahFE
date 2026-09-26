@@ -99,9 +99,14 @@ export async function uploadFile(file: File): Promise<string> {
 }
 
 export async function fetchCatalog(): Promise<Catalog> {
-  const response = await fetch(`${API_BASE}/catalog`, {
+  const cacheBuster = Date.now();
+  const response = await fetch(`${API_BASE}/catalog?_=${cacheBuster}`, {
     credentials: "omit",
     cache: "no-store",
+    headers: {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+    },
   });
   return json<Catalog>(response);
 }

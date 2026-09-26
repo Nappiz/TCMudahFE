@@ -9,6 +9,7 @@ type Props = {
   rows: Order[];
   rupiah: (n: number) => string;
   onSetStatus: (id: string, status: Exclude<OrderStatus, "pending">) => void;
+  onView: (order: Order) => void;
   page: number;
   total: number;
   limit: number;
@@ -19,6 +20,7 @@ export function OrdersTable({
   rows,
   rupiah,
   onSetStatus,
+  onView,
   page,
   total,
   limit,
@@ -107,8 +109,9 @@ export function OrdersTable({
                 {row.note ? row.note : <span className="text-white/40">—</span>}
               </td>
               <td className="px-4 py-3">
-                <span
-                  className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs border
+                <div className="space-y-1">
+                  <span
+                    className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs border
                     ${
                       row.status === "approved"
                         ? "bg-emerald-500/15 text-emerald-300 border-emerald-400/20"
@@ -118,38 +121,41 @@ export function OrdersTable({
                             ? "bg-slate-500/15 text-slate-300 border-slate-400/20"
                             : "bg-amber-500/15 text-amber-300 border-amber-400/20"
                     }`}
-                >
-                  {row.status === "approved" ? "accepted" : row.status}
-                </span>
+                  >
+                    {row.status === "approved" ? "accepted" : row.status}
+                  </span>
+                  {row.status === "pending" && (
+                    <p className="text-[11px] text-white/50">
+                      {row.fulfillment_mode === "automatic"
+                        ? "Enrollment otomatis"
+                        : "Enrollment manual"}
+                    </p>
+                  )}
+                </div>
               </td>
               <td className="px-4 py-3">
-                {row.status === "pending" ? (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      onClick={() => onSetStatus(row.id, "approved")}
-                    >
-                      ✓ Approve
-                    </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="ghost" onClick={() => onView(row)}>
+                    {row.status === "pending"
+                      ? "Lihat & Approve"
+                      : "Lihat rincian"}
+                  </Button>
+                  {row.status === "pending" ? (
                     <Button
                       variant="ghost"
                       onClick={() => onSetStatus(row.id, "rejected")}
                     >
                       ✕ Reject
                     </Button>
-                  </div>
-                ) : row.status === "approved" ? (
-                  <div className="flex gap-2">
+                  ) : row.status === "approved" ? (
                     <Button
                       variant="ghost"
                       onClick={() => onSetStatus(row.id, "expired")}
                     >
                       ⏳ Expire
                     </Button>
-                  </div>
-                ) : (
-                  <span className="text-white/40">—</span>
-                )}
+                  ) : null}
+                </div>
               </td>
             </tr>
           ))}

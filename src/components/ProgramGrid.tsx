@@ -15,8 +15,9 @@ const API_BASE = process.env.BACKEND_URL || "http://localhost:8000";
 export default async function ProgramGrid() {
   let items: Item[] = [];
   try {
-    const res = await fetch(`${API_BASE}/catalog`, {
-      next: { revalidate: 300 },
+    const res = await fetch(`${API_BASE}/catalog?_=${Date.now()}`, {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
     });
     if (res.ok) {
       const data = (await res.json()) as CatalogResponse;

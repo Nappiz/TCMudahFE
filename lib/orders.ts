@@ -1,6 +1,7 @@
 import { api } from "./admin";
 
 export type OrderStatus = "pending" | "approved" | "rejected" | "expired";
+export type FulfillmentMode = "legacy_manual" | "automatic";
 
 export type OrderItem = {
   class_id?: string;
@@ -15,8 +16,11 @@ export type OrderItem = {
   offer_snapshot?: {
     items?: Array<{
       class_id: string;
+      class_title?: string;
       class_offer_id: string;
       meeting_count: number;
+      list_price?: number;
+      price?: number;
     }>;
   } | null;
 };
@@ -27,6 +31,7 @@ export type Order = {
   items: OrderItem[];
   total: number;
   status: OrderStatus;
+  fulfillment_mode: FulfillmentMode;
   proof_url?: string | null;
   sender_name?: string | null;
   note?: string | null;

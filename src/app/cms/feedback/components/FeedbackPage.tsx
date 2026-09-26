@@ -1,12 +1,14 @@
 "use client";
 
 import { useGlobalError } from "@/components/providers/ErrorProvider";
+import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { useFeedback } from "@/hooks/useFeedback";
 import { FeedbackHeader } from "./FeedbackHeader";
 import { FeedbackList } from "./FeedbackList";
 
 export default function FeedbackPage() {
   const { showError } = useGlobalError();
+  const { confirm, modal: confirmModal } = useConfirmModal();
   const {
     classes,
     selectedClassId,
@@ -24,7 +26,15 @@ export default function FeedbackPage() {
 
   async function handleDelete(id: string) {
     if (!canDelete) return;
-    if (!window.confirm("Hapus feedback ini?")) return;
+    if (
+      !(await confirm({
+        title: "Hapus feedback?",
+        message: "Hapus feedback ini?",
+        confirmText: "Hapus",
+        variant: "danger",
+      }))
+    )
+      return;
     try {
       await deleteById(id);
     } catch (error: unknown) {
@@ -73,6 +83,7 @@ export default function FeedbackPage() {
           </div>
         </div>
       )}
+      {confirmModal}
     </div>
   );
 }

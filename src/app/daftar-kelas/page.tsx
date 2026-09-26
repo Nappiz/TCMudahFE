@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useLocalCart } from "@/hooks/useLocalCart";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useConfirmModal } from "@/hooks/useConfirmModal";
 import type {
   Catalog,
   ClassItem,
@@ -44,6 +45,7 @@ const FlyingParticle = ({
 export default function DaftarKelasPage() {
   const authChecked = useRequireAuth();
   const router = useRouter();
+  const { confirm, modal: confirmModal } = useConfirmModal();
 
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [_err, setErr] = useState<string | null>(null);
@@ -208,7 +210,7 @@ export default function DaftarKelasPage() {
     }, 0);
   }, [catalog, lines]);
 
-  function selectClassOffer(classId: string, offerId: string) {
+  async function selectClassOffer(classId: string, offerId: string) {
     const conflictingPackages = lines.filter((line) => {
       if (line.itemType !== "package") return false;
       return catalog?.packages
@@ -217,9 +219,12 @@ export default function DaftarKelasPage() {
     });
     if (
       conflictingPackages.length > 0 &&
-      !window.confirm(
-        "Kelas ini sudah termasuk dalam bundle di keranjang. Hapus bundle dan ambil kelas satuan?",
-      )
+      !(await confirm({
+        title: "Ganti bundle dengan kelas satuan?",
+        message:
+          "Kelas ini sudah termasuk dalam bundle di keranjang. Hapus bundle dan ambil kelas satuan?",
+        confirmText: "Ambil kelas satuan",
+      }))
     ) {
       return;
     }
@@ -229,7 +234,7 @@ export default function DaftarKelasPage() {
     addClass(classId, offerId);
   }
 
-  function selectPackage(packageId: string) {
+  async function selectPackage(packageId: string) {
     const selectedPackage = catalog?.packages.find(
       (item) => item.id === packageId,
     );
@@ -240,9 +245,12 @@ export default function DaftarKelasPage() {
     );
     if (
       conflictingClasses.length > 0 &&
-      !window.confirm(
-        "Sebagian kelas di bundle ini sudah ada di keranjang. Hapus kelas satuan dan ambil bundle?",
-      )
+      !(await confirm({
+        title: "Ganti kelas satuan dengan bundle?",
+        message:
+          "Sebagian kelas di bundle ini sudah ada di keranjang. Hapus kelas satuan dan ambil bundle?",
+        confirmText: "Ambil bundle",
+      }))
     ) {
       return;
     }
@@ -379,6 +387,7 @@ export default function DaftarKelasPage() {
           total={total}
         />
       </div>
+      {confirmModal}
     </main>
   );
 }
