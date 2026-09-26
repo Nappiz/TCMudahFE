@@ -20,7 +20,12 @@ export function getSafeLoginDestination(value: string | null): string {
 
   try {
     const destination = new URL(value, TRUSTED_ORIGIN);
-    if (destination.origin !== TRUSTED_ORIGIN) return "/";
+    if (
+      destination.origin !== TRUSTED_ORIGIN ||
+      destination.pathname.startsWith("//")
+    ) {
+      return "/";
+    }
     return `${destination.pathname}${destination.search}${destination.hash}`;
   } catch {
     return "/";

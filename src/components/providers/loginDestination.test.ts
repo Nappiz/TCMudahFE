@@ -9,6 +9,7 @@ assert.equal(getSafeLoginDestination("/cms/orders"), "/cms/orders");
 assert.equal(getSafeLoginDestination("https://evil.example"), "/");
 assert.equal(getSafeLoginDestination("//evil.example"), "/");
 assert.equal(getSafeLoginDestination("/\\\\evil.example"), "/");
+assert.equal(getSafeLoginDestination("/cms/..//evil.example"), "/");
 assert.equal(
   getSafeLoginDestination("/cms?tab=orders#pending"),
   "/cms?tab=orders#pending",
