@@ -149,7 +149,11 @@ function Sidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-1 scrollbar-thin scrollbar-thumb-white/10">
-        <NavLinks pathname={pathname} notifications={notifications} />
+        <NavLinks
+          pathname={pathname}
+          notifications={notifications}
+          canManageSettings={me.role === "admin" || me.role === "superadmin"}
+        />
       </nav>
 
       <div className="p-4 border-t border-white/5">
@@ -215,7 +219,13 @@ function MobileSidebar({
             </div>
 
             <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-              <NavLinks pathname={pathname} notifications={notifications} />
+              <NavLinks
+                pathname={pathname}
+                notifications={notifications}
+                canManageSettings={
+                  me.role === "admin" || me.role === "superadmin"
+                }
+              />
             </nav>
 
             <div className="p-4 border-t border-white/5">
@@ -231,13 +241,22 @@ function MobileSidebar({
 function NavLinks({
   pathname,
   notifications,
+  canManageSettings,
 }: {
   pathname: string;
   notifications: NotificationsSummary;
+  canManageSettings: boolean;
 }) {
   return (
     <>
       {MENU_ITEMS.map((item) => {
+        if (
+          !canManageSettings &&
+          (("href" in item && item.href === "/cms/settings") ||
+            ("type" in item && item.key === "configuration"))
+        ) {
+          return null;
+        }
         if ("type" in item)
           return <div key={item.key} className="my-4 h-px bg-white/5" />;
         const Icon = item.icon;

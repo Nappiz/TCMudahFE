@@ -3,34 +3,43 @@
 import { useEffect, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import { useModal } from "@/components/ui/useModal";
+import { apiMe } from "../../../../lib/api";
+import { fetchAdminSettings, updateSetting } from "../../../../lib/settings";
 
-const API_BASE = "/api";
+const SETTING_KEYS = [
+  "disable_daftar_kelas",
+  "disabled_daftar_kelas_msg",
+  "checkout_bank_name",
+  "checkout_bank_account",
+  "checkout_bank_holder",
+  "checkout_group_link",
+  "maintenance_mode",
+  "maintenance_message",
+];
 
-async function fetchSettings(keys: string[]): Promise<Record<string, string>> {
-  const params = new URLSearchParams();
-  for (const key of keys) params.append("keys", key);
-  const res = await fetch(`${API_BASE}/settings?${params.toString()}`);
-  if (!res.ok) throw new Error("Failed to fetch setting");
-  return res.json();
-}
-
-async function updateSetting(key: string, value: string) {
-  const res = await fetch(`${API_BASE}/settings/${key}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ value }),
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error("Failed to update setting");
-  return res.json();
-}
+const inputClass =
+  "w-full rounded-xl border border-white/10 bg-[#0B0E14] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/10";
 
 export default function SettingsPage() {
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const [disableDaftarKelas, setDisableDaftarKelas] = useState(false);
   const [disabledDaftarKelasMsg, setDisabledDaftarKelasMsg] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [savingMsg, setSavingMsg] = useState(false);
+
+  const [bankName, setBankName] = useState("");
+  const [bankAccount, setBankAccount] = useState("");
+  const [bankHolder, setBankHolder] = useState("");
+  const [groupLink, setGroupLink] = useState("");
+
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState("");
+
+  const [savingRegistration, setSavingRegistration] = useState(false);
+  const [savingPayment, setSavingPayment] = useState(false);
+  const [savingMaintenance, setSavingMaintenance] = useState(false);
+  const [savingMaintenanceMessage, setSavingMaintenanceMessage] =
+    useState(false);
 
   const successModal = useModal();
   const errorModal = useModal();
@@ -38,54 +47,169 @@ export default function SettingsPage() {
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    fetchSettings(["disable_daftar_kelas", "disabled_daftar_kelas_msg"])
-      .then((settings) => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const me = await apiMe();
+        const canManage = me.role === "admin" || me.role === "superadmin";
+        if (cancelled) return;
+        setAuthorized(canManage);
+        if (!canManage) return;
+
+        const settings = await fetchAdminSettings(SETTING_KEYS);
+        if (cancelled) return;
+
         setDisableDaftarKelas(settings.disable_daftar_kelas === "true");
         setDisabledDaftarKelasMsg(
           settings.disabled_daftar_kelas_msg ||
             "Pendaftaran kelas ditutup sementara.",
         );
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-  }, []);
+        setBankName(settings.checkout_bank_name || "");
+        setBankAccount(settings.checkout_bank_account || "");
+        setBankHolder(settings.checkout_bank_holder || "");
+        setGroupLink(settings.checkout_group_link || "");
+        setMaintenanceMode(settings.maintenance_mode === "true");
+        setMaintenanceMessage(
+          settings.maintenance_message ||
+            "Situs sedang dalam maintenance. Silakan coba lagi nanti.",
+        );
+      } catch (error: unknown) {
+        if (!cancelled) {
+          setAuthorized(false);
+          setErrorMsg(
+            error instanceof Error ? error.message : "Gagal memuat pengaturan.",
+          );
+          errorModal.onOpen();
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
 
-  const handleToggle = async () => {
-    const newValue = !disableDaftarKelas;
-    setDisableDaftarKelas(newValue);
-    setSaving(true);
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [errorModal.onOpen]);
 
+  async function saveSetting(key: string, value: string) {
+    await updateSetting(key, value);
+  }
+
+  async function handleToggleRegistration() {
+    const next = !disableDaftarKelas;
+    setDisableDaftarKelas(next);
+    setSavingRegistration(true);
     try {
-      await updateSetting("disable_daftar_kelas", newValue ? "true" : "false");
-    } catch (err) {
-      console.error(err);
-      setDisableDaftarKelas(!newValue);
-      setErrorMsg("Gagal menyimpan pengaturan.");
+      await saveSetting("disable_daftar_kelas", next ? "true" : "false");
+    } catch (error: unknown) {
+      setDisableDaftarKelas(!next);
+      setErrorMsg(
+        error instanceof Error ? error.message : "Gagal menyimpan pengaturan.",
+      );
       errorModal.onOpen();
     } finally {
-      setSaving(false);
+      setSavingRegistration(false);
     }
-  };
+  }
 
-  const handleSaveMessage = async () => {
-    setSavingMsg(true);
+  async function handleSaveRegistrationMessage() {
+    setSavingRegistration(true);
     try {
-      await updateSetting("disabled_daftar_kelas_msg", disabledDaftarKelasMsg);
-      setSuccessMsg("Pesan berhasil disimpan.");
+      await saveSetting(
+        "disabled_daftar_kelas_msg",
+        disabledDaftarKelasMsg.trim(),
+      );
+      setSuccessMsg("Pesan penutupan pendaftaran berhasil disimpan.");
       successModal.onOpen();
-    } catch (err) {
-      console.error(err);
-      setErrorMsg("Gagal menyimpan pesan.");
+    } catch (error: unknown) {
+      setErrorMsg(
+        error instanceof Error ? error.message : "Gagal menyimpan pesan.",
+      );
       errorModal.onOpen();
     } finally {
-      setSavingMsg(false);
+      setSavingRegistration(false);
     }
-  };
+  }
 
-  if (loading) {
+  async function handleSavePayment() {
+    setSavingPayment(true);
+    try {
+      await Promise.all([
+        saveSetting("checkout_bank_name", bankName),
+        saveSetting("checkout_bank_account", bankAccount),
+        saveSetting("checkout_bank_holder", bankHolder),
+        saveSetting("checkout_group_link", groupLink),
+      ]);
+      setSuccessMsg("Informasi pembayaran berhasil disimpan.");
+      successModal.onOpen();
+    } catch (error: unknown) {
+      setErrorMsg(
+        error instanceof Error
+          ? error.message
+          : "Gagal menyimpan informasi pembayaran.",
+      );
+      errorModal.onOpen();
+    } finally {
+      setSavingPayment(false);
+    }
+  }
+
+  async function handleToggleMaintenance() {
+    const next = !maintenanceMode;
+    setMaintenanceMode(next);
+    setSavingMaintenance(true);
+    try {
+      await saveSetting("maintenance_mode", next ? "true" : "false");
+      setSuccessMsg(
+        next ? "Maintenance mode diaktifkan." : "Maintenance mode dimatikan.",
+      );
+      successModal.onOpen();
+    } catch (error: unknown) {
+      setMaintenanceMode(!next);
+      setErrorMsg(
+        error instanceof Error ? error.message : "Gagal menyimpan mode.",
+      );
+      errorModal.onOpen();
+    } finally {
+      setSavingMaintenance(false);
+    }
+  }
+
+  async function handleSaveMaintenanceMessage() {
+    setSavingMaintenanceMessage(true);
+    try {
+      await saveSetting("maintenance_message", maintenanceMessage.trim());
+      setSuccessMsg("Pesan maintenance berhasil disimpan.");
+      successModal.onOpen();
+    } catch (error: unknown) {
+      setErrorMsg(
+        error instanceof Error ? error.message : "Gagal menyimpan pesan.",
+      );
+      errorModal.onOpen();
+    } finally {
+      setSavingMaintenanceMessage(false);
+    }
+  }
+
+  if (loading || authorized === null) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="h-8 w-8 rounded-full border-2 border-cyan-500 border-t-transparent animate-spin"></div>
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center">
+          <p className="text-sm font-medium text-white">Akses terbatas</p>
+          <p className="mt-2 text-sm text-slate-400">
+            Pengaturan aplikasi hanya dapat dikelola oleh admin.
+          </p>
+        </div>
       </div>
     );
   }
@@ -93,84 +217,198 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight text-white">
           Settings
         </h1>
-        <p className="text-slate-400 text-sm mt-1">
-          Konfigurasi global untuk aplikasi TC Mudah.
+        <p className="mt-1 text-sm text-slate-400">
+          Kelola pengaturan operasional yang tampil dan digunakan aplikasi.
         </p>
       </div>
 
-      <div className="bg-[#0B0E14] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-        <div className="p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Tampilan Frontend
-          </h2>
-
-          <div className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-xl transition-colors hover:bg-white/[0.04]">
-            <div className="space-y-1">
-              <div className="text-sm font-medium text-slate-200">
-                Sembunyikan Tombol "Daftar Kelas"
-              </div>
-              <div className="text-xs text-slate-400">
-                Jika diaktifkan, tombol "Daftar Kelas" di Navbar halaman utama
-                tidak akan ditampilkan.
-              </div>
+      <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0B0E14] shadow-2xl">
+        <div className="border-b border-white/10 p-6">
+          <h2 className="text-lg font-semibold text-white">Pendaftaran</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Kontrol akses peserta ke katalog kelas.
+          </p>
+        </div>
+        <div className="space-y-4 p-6">
+          <div className="flex items-center justify-between gap-6 rounded-xl border border-white/5 bg-white/[0.02] p-4">
+            <div>
+              <p className="text-sm font-medium text-slate-200">
+                Tutup pendaftaran kelas
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                Tombol Daftar Kelas disembunyikan dari halaman peserta saat
+                aktif.
+              </p>
             </div>
-
             <button
               type="button"
-              onClick={handleToggle}
-              disabled={saving}
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-[#0B0E14] disabled:opacity-50 ${
-                disableDaftarKelas ? "bg-cyan-500" : "bg-slate-700"
-              }`}
+              onClick={handleToggleRegistration}
+              disabled={savingRegistration}
+              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition disabled:cursor-not-allowed disabled:opacity-50 ${disableDaftarKelas ? "bg-cyan-500" : "bg-slate-700"}`}
               role="switch"
               aria-checked={disableDaftarKelas}
             >
               <span
                 aria-hidden="true"
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  disableDaftarKelas ? "translate-x-5" : "translate-x-0"
-                }`}
+                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition ${disableDaftarKelas ? "translate-x-5" : "translate-x-0"}`}
               />
             </button>
           </div>
 
           {disableDaftarKelas && (
-            <div className="mt-4 p-4 bg-white/[0.02] border border-white/5 rounded-xl animate-in fade-in slide-in-from-top-2">
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
               <label
                 htmlFor="disabled-registration-message"
-                className="block text-sm font-medium text-slate-200 mb-2"
+                className="mb-2 block text-sm font-medium text-slate-200"
               >
-                Pesan Hover (Tooltip)
+                Pesan saat pendaftaran ditutup
               </label>
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <input
                   id="disabled-registration-message"
-                  type="text"
                   value={disabledDaftarKelasMsg}
-                  onChange={(e) => setDisabledDaftarKelasMsg(e.target.value)}
+                  onChange={(event) =>
+                    setDisabledDaftarKelasMsg(event.target.value)
+                  }
+                  className={inputClass}
                   placeholder="Pendaftaran kelas ditutup sementara."
-                  className="flex-1 bg-[#0B0E14] border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
                 />
                 <button
                   type="button"
-                  onClick={handleSaveMessage}
-                  disabled={savingMsg}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg border border-white/10 transition-colors disabled:opacity-50"
+                  onClick={handleSaveRegistrationMessage}
+                  disabled={savingRegistration}
+                  className="rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/15 disabled:opacity-50"
                 >
-                  {savingMsg ? "Menyimpan..." : "Simpan Pesan"}
+                  {savingRegistration ? "Menyimpan..." : "Simpan pesan"}
                 </button>
               </div>
-              <p className="text-xs text-slate-400 mt-2">
-                Pesan ini akan muncul saat kursor diarahkan ke tombol yang
-                dinonaktifkan.
-              </p>
             </div>
           )}
         </div>
-      </div>
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0B0E14] shadow-2xl">
+        <div className="border-b border-white/10 p-6">
+          <h2 className="text-lg font-semibold text-white">Pembayaran</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Informasi ini tampil di modal checkout peserta.
+          </p>
+        </div>
+        <div className="grid gap-4 p-6 sm:grid-cols-2">
+          <label className="space-y-2 text-sm text-slate-300">
+            <span>Nama bank</span>
+            <input
+              value={bankName}
+              onChange={(event) => setBankName(event.target.value)}
+              className={inputClass}
+              placeholder="Contoh: BCA"
+            />
+          </label>
+          <label className="space-y-2 text-sm text-slate-300">
+            <span>Nomor rekening</span>
+            <input
+              value={bankAccount}
+              onChange={(event) => setBankAccount(event.target.value)}
+              className={inputClass}
+              placeholder="Nomor rekening"
+            />
+          </label>
+          <label className="space-y-2 text-sm text-slate-300">
+            <span>Nama pemilik rekening</span>
+            <input
+              value={bankHolder}
+              onChange={(event) => setBankHolder(event.target.value)}
+              className={inputClass}
+              placeholder="Nama pemilik rekening"
+            />
+          </label>
+          <label className="space-y-2 text-sm text-slate-300">
+            <span>Link grup WhatsApp (opsional)</span>
+            <input
+              type="url"
+              value={groupLink}
+              onChange={(event) => setGroupLink(event.target.value)}
+              className={inputClass}
+              placeholder="https://chat.whatsapp.com/..."
+            />
+          </label>
+          <div className="flex justify-end sm:col-span-2">
+            <button
+              type="button"
+              onClick={handleSavePayment}
+              disabled={savingPayment}
+              className="rounded-xl border border-cyan-400/30 bg-cyan-400/15 px-5 py-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-400/25 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {savingPayment ? "Menyimpan..." : "Simpan pembayaran"}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0B0E14] shadow-2xl">
+        <div className="border-b border-white/10 p-6">
+          <h2 className="text-lg font-semibold text-white">Maintenance</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Jeda sementara alur peserta tanpa menutup akses CMS dan login.
+          </p>
+        </div>
+        <div className="space-y-4 p-6">
+          <div className="flex items-center justify-between gap-6 rounded-xl border border-white/5 bg-white/[0.02] p-4">
+            <div>
+              <p className="text-sm font-medium text-slate-200">
+                Aktifkan maintenance mode
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                Peserta akan melihat halaman maintenance dan tidak dapat
+                checkout.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleToggleMaintenance}
+              disabled={savingMaintenance}
+              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition disabled:cursor-not-allowed disabled:opacity-50 ${maintenanceMode ? "bg-cyan-500" : "bg-slate-700"}`}
+              role="switch"
+              aria-checked={maintenanceMode}
+            >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition ${maintenanceMode ? "translate-x-5" : "translate-x-0"}`}
+              />
+            </button>
+          </div>
+
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+            <label
+              htmlFor="maintenance-message"
+              className="mb-2 block text-sm font-medium text-slate-200"
+            >
+              Pesan maintenance
+            </label>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <textarea
+                id="maintenance-message"
+                rows={2}
+                value={maintenanceMessage}
+                onChange={(event) => setMaintenanceMessage(event.target.value)}
+                className={`${inputClass} resize-y`}
+                placeholder="Situs sedang dalam maintenance. Silakan coba lagi nanti."
+              />
+              <button
+                type="button"
+                onClick={handleSaveMaintenanceMessage}
+                disabled={savingMaintenanceMessage}
+                className="self-start rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/15 disabled:opacity-50"
+              >
+                {savingMaintenanceMessage ? "Menyimpan..." : "Simpan pesan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <Modal
         open={successModal.open}
