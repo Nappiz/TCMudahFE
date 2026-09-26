@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import { useModal } from "@/components/ui/useModal";
 import { apiMe } from "../../../../lib/api";
-import { fetchAdminSettings, updateSetting } from "../../../../lib/settings";
+import {
+  fetchAdminSettings,
+  updateCheckoutSettings,
+  updateSetting,
+} from "../../../../lib/settings";
+import { getSettingsAccessView } from "./settingsPageLogic";
 
 const SETTING_KEYS = [
   "disable_daftar_kelas",
@@ -23,6 +28,7 @@ const inputClass =
 export default function SettingsPage() {
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [disableDaftarKelas, setDisableDaftarKelas] = useState(false);
   const [disabledDaftarKelasMsg, setDisabledDaftarKelasMsg] = useState("");
@@ -46,52 +52,42 @@ export default function SettingsPage() {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadSettings = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const me = await apiMe();
+      const canManage = me.role === "admin" || me.role === "superadmin";
+      setAuthorized(canManage);
+      if (!canManage) return;
 
-    async function load() {
-      try {
-        const me = await apiMe();
-        const canManage = me.role === "admin" || me.role === "superadmin";
-        if (cancelled) return;
-        setAuthorized(canManage);
-        if (!canManage) return;
-
-        const settings = await fetchAdminSettings(SETTING_KEYS);
-        if (cancelled) return;
-
-        setDisableDaftarKelas(settings.disable_daftar_kelas === "true");
-        setDisabledDaftarKelasMsg(
-          settings.disabled_daftar_kelas_msg ||
-            "Pendaftaran kelas ditutup sementara.",
-        );
-        setBankName(settings.checkout_bank_name || "");
-        setBankAccount(settings.checkout_bank_account || "");
-        setBankHolder(settings.checkout_bank_holder || "");
-        setGroupLink(settings.checkout_group_link || "");
-        setMaintenanceMode(settings.maintenance_mode === "true");
-        setMaintenanceMessage(
-          settings.maintenance_message ||
-            "Situs sedang dalam maintenance. Silakan coba lagi nanti.",
-        );
-      } catch (error: unknown) {
-        if (!cancelled) {
-          setAuthorized(false);
-          setErrorMsg(
-            error instanceof Error ? error.message : "Gagal memuat pengaturan.",
-          );
-          errorModal.onOpen();
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      const settings = await fetchAdminSettings(SETTING_KEYS);
+      setDisableDaftarKelas(settings.disable_daftar_kelas === "true");
+      setDisabledDaftarKelasMsg(
+        settings.disabled_daftar_kelas_msg ||
+          "Pendaftaran kelas ditutup sementara.",
+      );
+      setBankName(settings.checkout_bank_name || "");
+      setBankAccount(settings.checkout_bank_account || "");
+      setBankHolder(settings.checkout_bank_holder || "");
+      setGroupLink(settings.checkout_group_link || "");
+      setMaintenanceMode(settings.maintenance_mode === "true");
+      setMaintenanceMessage(
+        settings.maintenance_message ||
+          "Situs sedang dalam maintenance. Silakan coba lagi nanti.",
+      );
+    } catch (error: unknown) {
+      setLoadError(
+        error instanceof Error ? error.message : "Gagal memuat pengaturan.",
+      );
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [errorModal.onOpen]);
+  useEffect(() => {
+    void loadSettings();
+  }, [loadSettings]);
 
   async function saveSetting(key: string, value: string) {
     await updateSetting(key, value);
@@ -136,12 +132,12 @@ export default function SettingsPage() {
   async function handleSavePayment() {
     setSavingPayment(true);
     try {
-      await Promise.all([
-        saveSetting("checkout_bank_name", bankName),
-        saveSetting("checkout_bank_account", bankAccount),
-        saveSetting("checkout_bank_holder", bankHolder),
-        saveSetting("checkout_group_link", groupLink),
-      ]);
+      await updateCheckoutSettings({
+        bank_name: bankName,
+        bank_account: bankAccount,
+        bank_holder: bankHolder,
+        group_link: groupLink,
+      });
       setSuccessMsg("Informasi pembayaran berhasil disimpan.");
       successModal.onOpen();
     } catch (error: unknown) {
@@ -193,7 +189,9 @@ export default function SettingsPage() {
     }
   }
 
-  if (loading || authorized === null) {
+  const accessView = getSettingsAccessView(loading, authorized, loadError);
+
+  if (accessView === "loading") {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
@@ -201,7 +199,27 @@ export default function SettingsPage() {
     );
   }
 
-  if (!authorized) {
+  if (accessView === "error") {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="max-w-md rounded-2xl border border-red-400/20 bg-red-400/[0.06] p-8 text-center">
+          <p className="text-sm font-medium text-white">
+            Pengaturan gagal dimuat
+          </p>
+          <p className="mt-2 text-sm text-red-200/80">{loadError}</p>
+          <button
+            type="button"
+            onClick={() => void loadSettings()}
+            className="mt-5 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
+          >
+            Coba lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (accessView === "denied") {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center">

@@ -10,6 +10,7 @@ import Label from "@/components/ui/Label";
 import Input from "@/components/ui/Input";
 import PasswordInput from "@/components/ui/PasswordInput";
 import { Button } from "@/components/ui/Button";
+import { getSafeLoginDestination } from "../../../components/providers/loginDestination";
 
 import { API_BASE } from "../../../../lib/api";
 
@@ -47,7 +48,8 @@ export default function LoginPage() {
     try {
       if (!email || !password) throw new Error("Email dan password harus diisi");
       await apiLogin({ email, password });
-      router.replace("/");
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.replace(getSafeLoginDestination(next));
     } catch (error: any) {
       setErr(error?.message ?? "Email atau password salah.");
     } finally {

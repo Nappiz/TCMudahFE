@@ -1,5 +1,12 @@
 type SettingsMap = Record<string, string>;
 
+export type CheckoutSettings = {
+  bank_name: string;
+  bank_account: string;
+  bank_holder: string;
+  group_link: string;
+};
+
 const API_BASE = "/api";
 
 async function readError(response: Response): Promise<string> {
@@ -50,4 +57,17 @@ export async function updateSetting(
   );
   if (!response.ok) throw new Error(await readError(response));
   return (await response.json()) as { key: string; value: string };
+}
+
+export async function updateCheckoutSettings(
+  settings: CheckoutSettings,
+): Promise<Record<string, string>> {
+  const response = await fetch(`${API_BASE}/admin/settings/checkout`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(settings),
+  });
+  if (!response.ok) throw new Error(await readError(response));
+  return (await response.json()) as Record<string, string>;
 }

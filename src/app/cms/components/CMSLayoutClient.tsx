@@ -91,7 +91,10 @@ function CMSLayoutContent({ children }: { children: ReactNode }) {
         }
         setMe(u as User);
       } catch {
-        if (!cancel) router.replace("/");
+        if (!cancel) {
+          const next = pathname || "/cms";
+          router.replace(`/login?next=${encodeURIComponent(next)}`);
+        }
       } finally {
         if (!cancel) setLoading(false);
       }
@@ -99,7 +102,7 @@ function CMSLayoutContent({ children }: { children: ReactNode }) {
     return () => {
       cancel = true;
     };
-  }, [router]);
+  }, [router, pathname]);
 
   if (loading) return null;
   if (!me) return null;

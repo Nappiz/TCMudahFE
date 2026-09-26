@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type MaintenanceScreenProps = {
   message: string;
 };
@@ -15,6 +17,12 @@ export default function MaintenanceScreen({ message }: MaintenanceScreenProps) {
         <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-slate-400">
           {message}
         </p>
+        <Link
+          href="/login?next=%2Fcms"
+          className="mt-7 inline-flex rounded-xl border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/15"
+        >
+          Masuk sebagai staf
+        </Link>
       </div>
     </main>
   );
