@@ -3,8 +3,8 @@
 import { Loader2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
-import ConfirmModal from "@/components/ui/ConfirmModal";
-import Modal from "@/components/ui/Modal";
+import ConfirmModal from "@/components/modal/ConfirmModal";
+import Modal from "@/components/modal/Modal";
 import { useModal } from "@/components/ui/useModal";
 import { useMentors } from "@/hooks/useMentors";
 import {

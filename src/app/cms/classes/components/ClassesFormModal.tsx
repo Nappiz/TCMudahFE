@@ -1,7 +1,7 @@
 "use client";
 
-import { BookOpen, Plus, Save, Tag, Trash2, Users2, X } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import Modal from "@/components/modal/Modal";
+import { ModalActionButton } from "@/components/modal/ModalActionButton";
 import type { ClassItem, ClassOffer } from "../../../../../lib/classes";
 import type { CurriculumItem } from "../../../../../lib/curriculum";
 import type { Mentor } from "../../../../../lib/mentors";
@@ -49,34 +49,16 @@ export function ClassesFormModal({
   onClose,
   onSubmit,
 }: Props) {
-  if (!open) return null;
-
   const isPackage = mode === "package";
 
   return (
-    <div className="fixed inset-0 z-[70]">
-      <button
-        type="button"
-        aria-label="Tutup modal"
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={() => !saving && onClose()}
-      />
-      <div className="absolute left-1/2 top-1/2 w-[92vw] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-slate-950 p-5 max-h-[90vh] overflow-y-auto">
-        <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
-          <div className="text-white font-bold text-lg">
-            {editing
-              ? `Edit ${isPackage ? "Paket" : "Kelas"}`
-              : `Tambah ${isPackage ? "Paket" : "Kelas"}`}
-          </div>
-          <button
-            type="button"
-            onClick={() => !saving && onClose()}
-            className="rounded-lg border border-white/15 p-2 text-white/80 hover:bg-white/10"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
+    <Modal
+      open={open}
+      onClose={onClose}
+      dismissible={!saving}
+      title={`${editing ? "Edit" : "Tambah"} ${isPackage ? "Paket" : "Kelas"}`}
+      size="lg"
+    >
         <div className="grid gap-4">
           <div>
             <label
@@ -148,7 +130,6 @@ export function ClassesFormModal({
                               });
                             }}
                           />
-                          <Users2 className="h-3.5 w-3.5 shrink-0" />
                           <span className="truncate">{m.name}</span>
                         </label>
                       );
@@ -190,7 +171,6 @@ export function ClassesFormModal({
                               });
                             }}
                           />
-                          <Tag className="h-3 w-3 shrink-0" />
                           {c.code}
                         </label>
                       );
@@ -264,7 +244,7 @@ export function ClassesFormModal({
                           />
                           <div className="min-w-0">
                             <div className="font-medium truncate flex items-center gap-1.5">
-                              <BookOpen className="w-3.5 h-3.5" /> {c.title}
+                              {c.title}
                             </div>
                             {checked && c.offers?.length > 0 && (
                               <select
@@ -377,7 +357,7 @@ export function ClassesFormModal({
                       }}
                       className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-xs font-medium text-cyan-300 hover:bg-cyan-500/20"
                     >
-                      <Plus className="h-3.5 w-3.5" /> Tambah Pilihan
+                      Tambah Pilihan
                     </button>
                   </div>
                   <div className="space-y-2">
@@ -462,7 +442,7 @@ export function ClassesFormModal({
                             }}
                             className="cursor-pointer rounded-lg p-1.5 text-red-400 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-30"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            Hapus
                           </button>
                         </div>
                       </div>
@@ -509,22 +489,24 @@ export function ClassesFormModal({
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={onClose} disabled={saving}>
-            Batal
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={onSubmit}
+        <div className="mt-6 flex justify-end gap-2 border-t border-white/[0.07] pt-4">
+          <ModalActionButton
+            variant="ghost"
+            onClick={onClose}
             disabled={saving}
-            className={`inline-flex items-center gap-2 ${isPackage ? "bg-amber-600 hover:bg-amber-500" : "bg-cyan-600 hover:bg-cyan-500"} text-white border-none`}
           >
-            <Save className="h-4 w-4" />
-            {saving ? "Menyimpan..." : "Simpan"}
-          </Button>
+            Batal
+          </ModalActionButton>
+          <ModalActionButton
+            variant="primary"
+            onClick={onSubmit}
+            loading={saving}
+            loadingLabel="Menyimpan..."
+          >
+            Simpan
+          </ModalActionButton>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 

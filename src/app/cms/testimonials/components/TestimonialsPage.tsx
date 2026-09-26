@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Modal from "@/components/ui/Modal";
-import ConfirmModal from "@/components/ui/ConfirmModal";
+import Modal from "@/components/modal/Modal";
+import ConfirmModal from "@/components/modal/ConfirmModal";
 import { useModal } from "@/components/ui/useModal";
 
 import { useTestimonials } from "@/hooks/useTestimonials";

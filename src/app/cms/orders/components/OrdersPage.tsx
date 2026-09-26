@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useGlobalError } from "@/components/providers/ErrorProvider";
-import ConfirmModal from "@/components/ui/ConfirmModal";
+import ConfirmModal from "@/components/modal/ConfirmModal";
 import { useOrders } from "@/hooks/useOrders";
 import type { Order, OrderStatus } from "../../../../../lib/orders";
 import { OrderDetailModal } from "./OrderDetailModal";
@@ -117,15 +117,13 @@ export default function OrdersPage() {
         />
       )}
 
-      {selectedOrder && (
-        <OrderDetailModal
-          order={selectedOrder}
-          rupiah={rupiah}
-          approving={approving}
-          onClose={() => setSelectedOrder(null)}
-          onApprove={handleApprove}
-        />
-      )}
+      <OrderDetailModal
+        order={selectedOrder}
+        rupiah={rupiah}
+        approving={approving}
+        onClose={() => setSelectedOrder(null)}
+        onApprove={handleApprove}
+      />
 
       <ConfirmModal
         open={expireTarget !== null}
@@ -152,6 +150,7 @@ export default function OrdersPage() {
         }
         confirmText="Ya, expire order"
         cancelText="Batal"
+        loadingLabel="Mengubah status..."
         variant="danger"
         loading={expiringId !== null}
         onConfirm={handleExpireConfirm}

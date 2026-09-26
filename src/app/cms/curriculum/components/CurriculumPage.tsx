@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import Modal from "@/components/ui/Modal";
-import ConfirmModal from "@/components/ui/ConfirmModal";
+import Modal from "@/components/modal/Modal";
+import ConfirmModal from "@/components/modal/ConfirmModal";
 import { useModal } from "@/components/ui/useModal";
 import { useCurriculum } from "@/hooks/useCurriculum";
 import type { CurriculumItem, CurriculumForm } from "../../../../../lib/curriculum";

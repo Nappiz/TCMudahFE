@@ -165,20 +165,19 @@ export default function ClassesPage() {
 
   async function handleDelete(it: ClassItem | PackageItem) {
     if (!canWrite) return;
-    if (
-      !(await confirm({
-        title: `Hapus ${activeTab === "package" ? "paket" : "kelas"}?`,
-        message: `Hapus ${activeTab === "package" ? "paket" : "kelas"} "${it.title}"?`,
-        confirmText: "Hapus",
-        variant: "danger",
-      }))
-    )
-      return;
-    try {
-      await removeItem(it.id, activeTab);
-    } catch (error: unknown) {
-      showError(error instanceof Error ? error.message : "Gagal menghapus.");
-    }
+    await confirm({
+      title: `Hapus ${activeTab === "package" ? "paket" : "kelas"}?`,
+      message: `Hapus ${activeTab === "package" ? "paket" : "kelas"} "${it.title}"?`,
+      confirmText: "Hapus",
+      variant: "danger",
+      onConfirm: async () => {
+        try {
+          await removeItem(it.id, activeTab);
+        } catch (error: unknown) {
+          showError(error instanceof Error ? error.message : "Gagal menghapus.");
+        }
+      },
+    });
   }
 
   async function handleToggleVisible(it: ClassItem | PackageItem) {

@@ -1,13 +1,12 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   BookOpen,
   Check,
   Package,
   Sparkles,
   UserCircle2,
-  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type {
@@ -17,6 +16,7 @@ import type {
   PackageItem,
 } from "@/types/catalog";
 import { rupiah } from "../../../lib/format";
+import Modal from "@/components/modal/Modal";
 
 export default function ClassCard({
   item,
@@ -75,11 +75,11 @@ export default function ClassCard({
     onAddToCartAnim?.(e);
   }
 
-  function confirmClass(e: React.MouseEvent) {
+  function confirmClass(e?: React.MouseEvent) {
     if (!klass || !choiceId) return;
     onSelectClass(klass.id, choiceId);
     setChooserOpen(false);
-    onAddToCartAnim?.(e);
+    if (e) onAddToCartAnim?.(e);
   }
 
   return (
@@ -186,42 +186,24 @@ export default function ClassCard({
         </div>
       </motion.div>
 
-      <AnimatePresence>
-        {chooserOpen && klass && (
-          <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center">
-            <motion.button
-              type="button"
-              aria-label="Tutup pilihan"
-              className="absolute inset-0 bg-slate-950/75 backdrop-blur-sm"
-              onClick={() => setChooserOpen(false)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 32, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 32, scale: 0.98 }}
-              className="relative z-10 w-full max-w-lg rounded-t-3xl border border-white/10 bg-slate-900 p-6 shadow-2xl sm:rounded-3xl"
-            >
-              <div className="mb-5 flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-cyan-400">
-                    Pilih paket pertemuan
-                  </p>
-                  <h3 className="mt-1 text-xl font-bold text-white">
-                    {klass.title}
-                  </h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setChooserOpen(false)}
-                  className="cursor-pointer rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-white"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
+      {klass ? (
+        <Modal
+          open={chooserOpen}
+          onClose={() => setChooserOpen(false)}
+          title={klass.title}
+          description="Pilih paket pertemuan"
+          size="md"
+          mobilePosition="bottom"
+          actions={[
+            {
+              label: selected ? "Simpan Perubahan" : "Tambahkan ke Keranjang",
+              onClick: confirmClass,
+              disabled: !choiceId,
+              variant: "primary",
+              autoFocus: true,
+            },
+          ]}
+        >
               <div className="space-y-3">
                 {visibleOffers.map((offer) => {
                   const active = choiceId === offer.id;
@@ -276,18 +258,8 @@ export default function ClassCard({
                 })}
               </div>
 
-              <button
-                type="button"
-                onClick={confirmClass}
-                disabled={!choiceId}
-                className="mt-6 h-12 w-full cursor-pointer rounded-xl bg-cyan-500 font-bold text-white transition-colors hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {selected ? "Simpan Perubahan" : "Tambahkan ke Keranjang"}
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+        </Modal>
+      ) : null}
     </>
   );
 }

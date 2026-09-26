@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, Edit2, CheckCircle2, Circle, Trash2, ShieldAlert } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Plus, Edit2, CheckCircle2, Trash2, ShieldAlert } from "lucide-react";
 import { api, postJSON, patchJSON, deleteJSON } from "../../../../../lib/api";
-import { useRouter } from "next/navigation";
 import { useGlobalError } from "@/components/providers/ErrorProvider";
+import Modal from "@/components/modal/Modal";
+import { ModalActionButton } from "@/components/modal/ModalActionButton";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
 
 type Batch = {
@@ -27,21 +28,21 @@ export default function BatchesPage() {
   const [formActive, setFormActive] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  async function loadBatches() {
+  const loadBatches = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api<Batch[]>("/batches");
       setBatches(data);
-    } catch (e: any) {
-      setError(e.message || "Gagal memuat data batch");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "Gagal memuat data batch"));
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    loadBatches();
-  }, []);
+    void loadBatches();
+  }, [loadBatches]);
 
   function handleAdd() {
     setEditing(null);
@@ -58,39 +59,37 @@ export default function BatchesPage() {
   }
 
   async function handleDelete(id: string, name: string) {
-    if (
-      !(await confirm({
-        title: "Hapus batch?",
-        message: `Hapus batch "${name}"?`,
-        confirmText: "Hapus",
-        variant: "danger",
-      }))
-    )
-      return;
-    try {
-      await deleteJSON(`/admin/batches/${id}`);
-      loadBatches();
-    } catch (e: any) {
-      showError(e.message || "Gagal menghapus batch");
-    }
+    await confirm({
+      title: "Hapus batch?",
+      message: `Hapus batch "${name}"?`,
+      confirmText: "Hapus",
+      variant: "danger",
+      onConfirm: async () => {
+        try {
+          await deleteJSON(`/admin/batches/${id}`);
+          void loadBatches();
+        } catch (error: unknown) {
+          showError(getErrorMessage(error, "Gagal menghapus batch"));
+        }
+      },
+    });
   }
 
   async function handleToggleActive(b: Batch) {
     if (b.is_active) return; // Already active
-    if (
-      !(await confirm({
-        title: "Aktifkan batch?",
-        message: `Aktifkan batch "${b.name}"? Ini akan menonaktifkan batch lain.`,
-        confirmText: "Aktifkan",
-      }))
-    )
-      return;
-    try {
-      await patchJSON(`/admin/batches/${b.id}`, { is_active: true });
-      loadBatches();
-    } catch (e: any) {
-      showError(e.message || "Gagal mengaktifkan batch");
-    }
+    await confirm({
+      title: "Aktifkan batch?",
+      message: `Aktifkan batch "${b.name}"? Ini akan menonaktifkan batch lain.`,
+      confirmText: "Aktifkan",
+      onConfirm: async () => {
+        try {
+          await patchJSON(`/admin/batches/${b.id}`, { is_active: true });
+          void loadBatches();
+        } catch (error: unknown) {
+          showError(getErrorMessage(error, "Gagal mengaktifkan batch"));
+        }
+      },
+    });
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -108,8 +107,8 @@ export default function BatchesPage() {
       }
       setModalOpen(false);
       loadBatches();
-    } catch (err: any) {
-      showError(err.message || "Gagal menyimpan batch");
+    } catch (error: unknown) {
+      showError(getErrorMessage(error, "Gagal menyimpan batch"));
     } finally {
       setSaving(false);
     }
@@ -126,6 +125,7 @@ export default function BatchesPage() {
           <p className="text-sm text-slate-400 mt-1">Atur gelombang/batch aktif untuk kelas dan paket.</p>
         </div>
         <button
+          type="button"
           onClick={handleAdd}
           className="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
         >
@@ -151,6 +151,7 @@ export default function BatchesPage() {
             
             <div className="mt-6 flex items-center justify-between border-t border-white/5 pt-4">
               <button
+                type="button"
                 onClick={() => handleToggleActive(b)}
                 disabled={b.is_active}
                 className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${b.is_active ? 'border-transparent text-slate-500 cursor-default' : 'border-white/10 text-slate-300 hover:bg-white/5 hover:text-white'}`}
@@ -160,6 +161,7 @@ export default function BatchesPage() {
               
               <div className="flex items-center gap-1">
                 <button
+                  type="button"
                   onClick={() => handleEdit(b)}
                   className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-md transition-colors"
                   title="Edit"
@@ -167,6 +169,7 @@ export default function BatchesPage() {
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleDelete(b.id, b.name)}
                   className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-400/10 rounded-md transition-colors"
                   title="Hapus"
@@ -185,14 +188,18 @@ export default function BatchesPage() {
         )}
       </div>
 
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#12161f] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <h2 className="text-xl font-bold text-white mb-4">{editing ? "Edit Batch" : "Tambah Batch"}</h2>
-            <form onSubmit={handleSave} className="space-y-4">
+      <Modal
+        open={modalOpen}
+        onClose={() => !saving && setModalOpen(false)}
+        dismissible={!saving}
+        title={editing ? "Edit Batch" : "Tambah Batch"}
+        size="sm"
+      >
+        <form onSubmit={handleSave} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Nama Batch</label>
+                <label htmlFor="batch-name" className="block text-sm font-medium text-slate-300 mb-1.5">Nama Batch</label>
                 <input
+                  id="batch-name"
                   type="text"
                   value={formName}
                   onChange={e => setFormName(e.target.value)}
@@ -203,17 +210,13 @@ export default function BatchesPage() {
               </div>
               
               {!editing?.is_active && (
-                <label className="flex items-center gap-3 p-3 border border-white/10 rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
-                  <div className="relative flex items-center justify-center">
-                    <input
-                      type="checkbox"
-                      checked={formActive}
-                      onChange={e => setFormActive(e.target.checked)}
-                      className="peer sr-only"
-                    />
-                    <div className="w-5 h-5 rounded border border-white/20 peer-checked:bg-cyan-500 peer-checked:border-cyan-500 transition-colors"></div>
-                    <CheckCircle2 className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100" />
-                  </div>
+                <label className="flex items-center gap-3 rounded-xl border border-white/10 p-3 transition-colors hover:bg-white/5">
+                  <input
+                    type="checkbox"
+                    checked={formActive}
+                    onChange={e => setFormActive(e.target.checked)}
+                    className="h-5 w-5 accent-cyan-400"
+                  />
                   <div className="text-sm">
                     <div className="font-medium text-white">Jadikan Batch Aktif</div>
                     <div className="text-slate-400 text-xs mt-0.5">Batch lain akan otomatis non-aktif</div>
@@ -221,27 +224,30 @@ export default function BatchesPage() {
                 </label>
               )}
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
-                <button
-                  type="button"
+              <div className="flex items-center justify-end gap-2 border-t border-white/[0.07] pt-4">
+                <ModalActionButton
+                  variant="ghost"
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                  disabled={saving}
                 >
                   Batal
-                </button>
-                <button
+                </ModalActionButton>
+                <ModalActionButton
                   type="submit"
-                  disabled={saving}
-                  className="px-6 py-2 rounded-xl text-sm font-bold bg-cyan-600 hover:bg-cyan-500 text-white disabled:opacity-50 transition-colors"
+                  variant="primary"
+                  loading={saving}
+                  loadingLabel="Menyimpan..."
                 >
-                  {saving ? "Menyimpan..." : "Simpan"}
-                </button>
+                  Simpan
+                </ModalActionButton>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+        </form>
+      </Modal>
       {confirmModal}
     </div>
   );
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
 }

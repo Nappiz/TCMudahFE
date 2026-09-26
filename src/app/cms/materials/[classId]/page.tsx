@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { useGlobalError } from "@/components/providers/ErrorProvider";
-import Modal from "@/components/ui/Modal";
+import Modal from "@/components/modal/Modal";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { toEmbedUrl } from "../../../../../lib/embed";
 
@@ -267,30 +267,30 @@ export default function CMSMaterialsByClassPage() {
 
   async function remove(material: Material) {
     if (!canWrite || deletingId) return;
-    const confirmed = await confirm({
+    await confirm({
       title: "Hapus materi?",
       message: `Hapus materi "${material.title}"? Tindakan ini tidak dapat dibatalkan.`,
       confirmText: "Hapus materi",
       variant: "danger",
+      onConfirm: async () => {
+        setDeletingId(material.id);
+        try {
+          await api(`/admin/materials/${material.id}`, { method: "DELETE" });
+          setMaterials((current) =>
+            current.filter((item) => item.id !== material.id),
+          );
+          if (previewId === material.id) setPreviewId(null);
+        } catch (errorValue: unknown) {
+          showError(
+            errorValue instanceof Error
+              ? errorValue.message
+              : "Gagal menghapus materi.",
+          );
+        } finally {
+          setDeletingId(null);
+        }
+      },
     });
-    if (!confirmed) return;
-
-    setDeletingId(material.id);
-    try {
-      await api(`/admin/materials/${material.id}`, { method: "DELETE" });
-      setMaterials((current) =>
-        current.filter((item) => item.id !== material.id),
-      );
-      if (previewId === material.id) setPreviewId(null);
-    } catch (errorValue: unknown) {
-      showError(
-        errorValue instanceof Error
-          ? errorValue.message
-          : "Gagal menghapus materi.",
-      );
-    } finally {
-      setDeletingId(null);
-    }
   }
 
   if (loading) {

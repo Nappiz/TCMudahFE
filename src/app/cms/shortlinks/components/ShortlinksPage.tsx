@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import ConfirmModal from "@/components/ui/ConfirmModal";
-import Modal from "@/components/ui/Modal";
+import ConfirmModal from "@/components/modal/ConfirmModal";
+import Modal from "@/components/modal/Modal";
 import { useModal } from "@/components/ui/useModal";
 import { useShortlinks } from "@/hooks/useShortlinks";
 import type { Shortlink, ShortlinkInput } from "../../../../../lib/shortlinks";

@@ -26,20 +26,19 @@ export default function FeedbackPage() {
 
   async function handleDelete(id: string) {
     if (!canDelete) return;
-    if (
-      !(await confirm({
-        title: "Hapus feedback?",
-        message: "Hapus feedback ini?",
-        confirmText: "Hapus",
-        variant: "danger",
-      }))
-    )
-      return;
-    try {
-      await deleteById(id);
-    } catch (error: unknown) {
-      showError(error instanceof Error ? error.message : "Gagal menghapus.");
-    }
+    await confirm({
+      title: "Hapus feedback?",
+      message: "Hapus feedback ini?",
+      confirmText: "Hapus",
+      variant: "danger",
+      onConfirm: async () => {
+        try {
+          await deleteById(id);
+        } catch (error: unknown) {
+          showError(error instanceof Error ? error.message : "Gagal menghapus.");
+        }
+      },
+    });
   }
 
   return (

@@ -2,7 +2,7 @@
 
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import Modal from "@/components/ui/Modal";
+import Modal from "@/components/modal/Modal";
 import { useEnrollments } from "@/hooks/useEnrollments";
 import ClassesSection from "./ClassesSection";
 import UsersSidebar from "./UsersSidebar";

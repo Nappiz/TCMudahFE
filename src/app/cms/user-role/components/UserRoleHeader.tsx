@@ -1,52 +1,90 @@
-// src/app/cms/user-role/components/UserRoleHeader.tsx
-import type { User } from "../../../../../lib/admin";
-import { RolePill } from "./RolePill";
+"use client";
+
+import { RoleDropdown } from "./RoleDropdown";
 
 type Props = {
-  me: User | null;
   search: string;
   onSearchChange: (value: string) => void;
   roleFilter: string;
   onRoleFilterChange: (value: string) => void;
+  total: number;
 };
 
-export function UserRoleHeader({ me, search, onSearchChange, roleFilter, onRoleFilterChange }: Props) {
+const fieldClassName =
+  "mt-2 h-11 w-full rounded-xl border border-white/[0.09] bg-[#0a0f16]/75 px-3.5 text-sm text-white outline-none transition placeholder:text-white/30 hover:border-white/[0.15] focus:border-cyan-300/45 focus:ring-4 focus:ring-cyan-300/[0.08]";
+export function UserRoleHeader({
+  search,
+  onSearchChange,
+  roleFilter,
+  onRoleFilterChange,
+  total,
+}: Props) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-white">Kelola Role Pengguna</h2>
-          <p className="text-sm text-white/60">Settings role tiap user</p>
+    <section className="relative isolate z-20 rounded-[28px] border border-white/[0.08] bg-gradient-to-br from-[#121b28] via-[#101721] to-[#0d131c] px-5 py-6 shadow-[0_24px_70px_rgba(0,0,0,0.2)] sm:px-7 sm:py-7">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]"
+      >
+        <div className="absolute -right-20 -top-32 h-72 w-72 rounded-full bg-cyan-400/[0.07] blur-3xl" />
+      </div>
+      <div className="relative">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-200/70">
+            Administrasi · Akses
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-[30px]">
+            Pengguna &amp; akses
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/50">
+            Atur peran dan hak akses akun dengan jelas dari satu tempat.
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="text-xs text-white/70">Role aktif:</div>
-          {me && <RolePill role={me.role} />}
+
+        <div className="mt-7 border-t border-white/[0.07] pt-5">
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_210px] sm:items-end lg:grid-cols-[minmax(0,1fr)_210px_auto]">
+            <label className="block min-w-0">
+              <span
+                id="user-role-search-label"
+                className="text-xs font-medium text-white/55"
+              >
+                Cari nama atau email
+              </span>
+              <input
+                id="user-role-search"
+                type="search"
+                autoComplete="off"
+                value={search}
+                onChange={(event) => onSearchChange(event.target.value)}
+                placeholder="Contoh: nama pengguna"
+                className={fieldClassName}
+              />
+            </label>
+
+            <div className="block min-w-0">
+              <span
+                id="user-role-filter-label"
+                className="text-xs font-medium text-white/55"
+              >
+                Filter role
+              </span>
+              <div className="mt-2">
+                <RoleDropdown
+                  labelId="user-role-filter-label"
+                  value={roleFilter}
+                  onChange={onRoleFilterChange}
+                />
+              </div>
+            </div>
+
+            <span
+              aria-live="polite"
+              className="inline-flex h-11 w-fit items-center rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 text-xs font-medium tabular-nums text-white/65 sm:col-span-2 lg:col-span-1 lg:justify-self-end"
+            >
+              {total.toLocaleString("id-ID")} akun
+            </span>
+          </div>
         </div>
       </div>
-      <div className="mt-3 flex items-center gap-3">
-        <div className="relative w-full max-w-md">
-          <input
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Cari nama pengguna…"
-            className="w-full rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 pr-9 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/25"
-          />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/40">
-            ⌘K
-          </span>
-        </div>
-        <select
-          value={roleFilter}
-          onChange={(e) => onRoleFilterChange(e.target.value)}
-          className="rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-white outline-none focus:border-white/25 h-[38px]"
-        >
-          <option value="">Semua Role</option>
-          <option value="superadmin">Superadmin</option>
-          <option value="admin">Admin</option>
-          <option value="mentor">Mentor</option>
-          <option value="peserta">Peserta</option>
-        </select>
-      </div>
-    </div>
+    </section>
   );
 }

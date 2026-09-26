@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Modal from "@/components/ui/Modal";
+import Modal from "@/components/modal/Modal";
 import { useModal } from "@/components/ui/useModal";
 import { apiMe } from "../../../../lib/api";
 import {

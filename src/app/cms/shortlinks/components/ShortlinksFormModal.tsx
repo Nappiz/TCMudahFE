@@ -1,6 +1,6 @@
 "use client";
 
-import Modal from "@/components/ui/Modal";
+import Modal from "@/components/modal/Modal";
 import type { Shortlink } from "../../../../../lib/shortlinks";
 import type { FormState } from "./ShortlinksPage";
 
@@ -27,19 +27,23 @@ export function ShortlinksFormModal({
     <Modal
       open={open}
       onClose={onClose}
+      dismissible={!saving}
       title={editing ? "Edit Shortlink" : "Tambah Shortlink"}
       variant="info"
+      size="md"
       actions={[
         {
           label: "Batal",
           onClick: onClose,
           variant: "ghost",
+          disabled: saving,
         },
         {
-          label: saving ? "Menyimpan…" : "Simpan",
+          label: "Simpan",
+          loadingLabel: "Menyimpan...",
           onClick: onSubmit,
           variant: "primary",
-          disabled: saving,
+          loading: saving,
           autoFocus: true,
         },
       ]}
