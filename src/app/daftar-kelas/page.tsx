@@ -1,12 +1,11 @@
-"use client";
+﻿"use client";
 
-import { motion } from "framer-motion";
-import { Loader2, Search, Sparkles } from "lucide-react";
+import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { useLocalCart } from "@/hooks/useLocalCart";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { useConfirmModal } from "@/hooks/useConfirmModal";
 import type {
   Catalog,
   ClassItem,
@@ -20,55 +19,14 @@ import CartButton from "./CartButton";
 import CartDrawer from "./CartDrawer";
 import ClassCard from "./ClassCard";
 
-const FlyingParticle = ({
-  startX,
-  startY,
-}: {
-  startX: number;
-  startY: number;
-}) => {
-  const targetX = typeof window !== "undefined" ? window.innerWidth - 80 : 0;
-  const targetY = 80;
-
-  return (
-    <motion.div
-      initial={{ x: startX, y: startY, scale: 1, opacity: 1 }}
-      animate={{ x: targetX, y: targetY, scale: 0.5, opacity: 0 }}
-      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed z-[9999] pointer-events-none"
-    >
-      <div className="h-6 w-6 rounded-full bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
-    </motion.div>
-  );
-};
-
 export default function DaftarKelasPage() {
   const authChecked = useRequireAuth();
   const router = useRouter();
   const { confirm, modal: confirmModal } = useConfirmModal();
 
   const [catalog, setCatalog] = useState<Catalog | null>(null);
-  const [_err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
   const [q, setQ] = useState("");
-
-  const [flyingItems, setFlyingItems] = useState<
-    { id: number; x: number; y: number }[]
-  >([]);
-
-  const handleAddToCartAnim = (e: React.MouseEvent) => {
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    const startX = rect.left + rect.width / 2;
-    const startY = rect.top + rect.height / 2;
-
-    const animId = Date.now();
-    setFlyingItems((prev) => [...prev, { id: animId, x: startX, y: startY }]);
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
-
-    setTimeout(() => {
-      setFlyingItems((prev) => prev.filter((item) => item.id !== animId));
-    }, 1000);
-  };
 
   useEffect(() => {
     if (!authChecked) return;
@@ -262,77 +220,233 @@ export default function DaftarKelasPage() {
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
-      </div>
+      <main className="flex min-h-screen items-center justify-center bg-[#071114] text-white">
+        <div className="flex items-center gap-3 text-sm text-slate-400">
+          <span
+            aria-hidden="true"
+            className="h-4 w-4 animate-spin rounded-full border-2 border-white/15 border-t-cyan-100"
+          />
+          Menyiapkan ruang belajar...
+        </div>
+      </main>
     );
   }
 
+  const classCount = catalog?.classes.length;
+  const packageCount = catalog?.packages.length;
+
   return (
-    <main className="min-h-screen bg-slate-950 text-white selection:bg-cyan-500/30">
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-900/20 blur-[120px] rounded-full" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-900/20 blur-[120px] rounded-full" />
+    <main className="min-h-screen overflow-hidden bg-[#071114] text-white selection:bg-cyan-200/20">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      >
+        <div className="absolute -right-48 -top-56 h-[38rem] w-[38rem] rounded-full bg-cyan-600/[0.075] blur-[140px]" />
+        <div className="absolute -bottom-72 -left-48 h-[40rem] w-[40rem] rounded-full bg-blue-800/[0.08] blur-[150px]" />
       </div>
 
-      {flyingItems.map((item) => (
-        <FlyingParticle key={item.id} startX={item.x} startY={item.y} />
-      ))}
-
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 md:px-6 py-12 md:py-24">
-        <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs text-cyan-400 mb-4">
-              <Sparkles className="w-3 h-3" /> Semester Baru
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-2">
-              Katalog Kelas
-            </h1>
-            <p className="text-slate-400 max-w-lg">
-              Pilih materi yang kamu butuhkan. Tuntaskan satu per satu, raih IPK
-              maksimal.
-            </p>
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-20 pt-28 sm:px-6 md:pb-24 md:pt-36">
+        <section
+          aria-labelledby="daftar-kelas-title"
+          className="relative overflow-hidden rounded-[30px] border border-white/[0.085] bg-[linear-gradient(125deg,rgba(16,35,39,0.96),rgba(10,22,27,0.97)_58%,rgba(12,24,30,0.94))] shadow-[0_30px_100px_rgba(0,0,0,0.24)] sm:rounded-[36px]"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-20 -top-40 h-[30rem] w-[30rem] rounded-full border border-cyan-100/[0.04]"
+          >
+            <div className="absolute inset-8 rounded-full border border-cyan-100/[0.045]" />
+            <div className="absolute inset-16 rounded-full border border-cyan-100/[0.05]" />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-            <div className="relative w-full sm:w-72 group">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Cari kelas, mentor..."
-                className="w-full rounded-xl border border-white/10 bg-slate-900/50 pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-cyan-500/50 focus:bg-slate-900 transition-all shadow-sm"
-              />
+          <div className="relative grid gap-10 px-6 py-8 sm:px-10 sm:py-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-center lg:gap-14 lg:px-14 lg:py-14">
+            <div>
+              <p className="flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-100/70 sm:text-[11px]">
+                <span
+                  aria-hidden="true"
+                  className="h-1.5 w-1.5 rounded-full bg-cyan-100/80"
+                />
+                Ruang belajar TC Mudah
+              </p>
+              <h1
+                id="daftar-kelas-title"
+                className="mt-5 max-w-2xl text-[2.35rem] font-semibold leading-[1.08] tracking-[-0.045em] text-white sm:text-5xl lg:text-[3.4rem]"
+              >
+                Belajar lebih terarah,
+                <span className="mt-1 block text-cyan-100/80">
+                  dengan pendamping yang tepat.
+                </span>
+              </h1>
+              <p className="mt-5 max-w-xl text-sm leading-7 text-slate-300/65 sm:text-base">
+                Pilih kelas satuan atau bundle belajar, lalu pahami materi
+                kuliah bersama mentor TC Mudah dengan ritme yang lebih nyaman.
+              </p>
             </div>
-            <div className="shrink-0 relative z-20">
-              <CartButton count={totalCount} />
+
+            <div className="relative mx-auto w-full max-w-md rounded-[24px] border border-white/[0.08] bg-[#081316]/55 p-5 shadow-[0_24px_60px_rgba(0,0,0,0.2)] backdrop-blur sm:p-6">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  Pilihan belajar
+                </span>
+                <span className="text-[10px] font-medium tracking-wide text-cyan-100/55">
+                  TC / ITS
+                </span>
+              </div>
+              <div className="mt-5 divide-y divide-white/[0.07]">
+                <div className="flex items-center justify-between gap-4 py-4 first:pt-0">
+                  <div className="flex items-center gap-3.5">
+                    <span className="font-mono text-xs text-cyan-100/45">
+                      01
+                    </span>
+                    <span className="text-sm font-medium text-white/85">
+                      Kelas satuan
+                    </span>
+                  </div>
+                  <span className="font-mono text-sm text-white/75">
+                    {classCount === undefined ? "—" : classCount}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-4 py-4 last:pb-0">
+                  <div className="flex items-center gap-3.5">
+                    <span className="font-mono text-xs text-cyan-100/45">
+                      02
+                    </span>
+                    <span className="text-sm font-medium text-white/85">
+                      Bundle belajar
+                    </span>
+                  </div>
+                  <span className="font-mono text-sm text-white/75">
+                    {packageCount === undefined ? "—" : packageCount}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-5 flex items-center justify-between border-t border-white/[0.07] pt-4">
+                <p className="max-w-[210px] text-xs leading-5 text-slate-400">
+                  Materi terarah, sesi bersama mentor, pilihan yang fleksibel.
+                </p>
+                <div aria-hidden="true" className="flex h-8 items-end gap-1">
+                  <span className="h-3 w-1 rounded-full bg-cyan-100/25" />
+                  <span className="h-5 w-1 rounded-full bg-cyan-100/40" />
+                  <span className="h-7 w-1 rounded-full bg-cyan-100/65" />
+                  <span className="h-4 w-1 rounded-full bg-cyan-100/30" />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {!catalog ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
+        <section aria-labelledby="catalog-heading" className="mt-12">
+          <div className="flex flex-col gap-5 border-b border-white/[0.08] pb-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-100/55">
+                Katalog kelas
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <h2
+                  id="catalog-heading"
+                  className="text-2xl font-semibold tracking-tight text-white sm:text-[28px]"
+                >
+                  Semua pilihan belajar
+                </h2>
+                {catalog ? (
+                  <span
+                    aria-live="polite"
+                    className="rounded-full border border-white/[0.08] bg-white/[0.035] px-2.5 py-1 text-[11px] tabular-nums text-slate-400"
+                  >
+                    {filtered.length.toLocaleString("id-ID")} program
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-2 text-sm text-slate-400/75">
+                Temukan materi yang sesuai dengan kebutuhan belajarmu.
+              </p>
+            </div>
+
+            <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:min-w-[430px] lg:justify-end">
+              <label className="group relative block min-w-0 flex-1">
+                <span className="sr-only">Cari kelas, mentor, atau materi</span>
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-cyan-100/80"
+                  strokeWidth={1.8}
+                />
+                <input
+                  type="search"
+                  autoComplete="off"
+                  value={q}
+                  onChange={(event) => setQ(event.target.value)}
+                  placeholder="Cari kelas, mentor, materi..."
+                  className="h-12 w-full rounded-xl border border-white/[0.09] bg-[#0b171a]/80 pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-slate-500 hover:border-white/[0.14] focus:border-cyan-100/35 focus:ring-4 focus:ring-cyan-100/[0.06]"
+                />
+              </label>
+              <div className="shrink-0">
+                <CartButton count={totalCount} />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {!catalog && !err ? (
+          <div
+            aria-busy="true"
+            className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3"
+          >
+            <p className="sr-only">Memuat katalog kelas...</p>
+            {[0, 1, 2].map((index) => (
               <div
-                key={i}
-                className="h-64 rounded-3xl bg-white/5 animate-pulse border border-white/5"
-              />
+                key={index}
+                className="min-h-[330px] animate-pulse rounded-[26px] border border-white/[0.06] bg-white/[0.025] p-6"
+              >
+                <div className="h-3 w-24 rounded-full bg-white/[0.07]" />
+                <div className="mt-7 h-6 w-3/4 rounded-md bg-white/[0.07]" />
+                <div className="mt-3 h-3 w-1/2 rounded-full bg-white/[0.05]" />
+                <div className="mt-8 h-3 w-full rounded-full bg-white/[0.045]" />
+                <div className="mt-2 h-3 w-5/6 rounded-full bg-white/[0.045]" />
+                <div className="mt-16 h-11 rounded-xl bg-white/[0.05]" />
+              </div>
             ))}
           </div>
+        ) : !catalog && err ? (
+          <div
+            role="alert"
+            className="mt-8 rounded-[26px] border border-rose-200/[0.12] bg-rose-200/[0.035] px-6 py-10 text-center sm:py-14"
+          >
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-100/55">
+              Katalog belum tersedia
+            </p>
+            <h3 className="mt-3 text-lg font-semibold text-white">
+              Kelas belum dapat dimuat
+            </h3>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-300/60">
+              {err}
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-5 h-10 cursor-pointer rounded-xl border border-white/10 bg-white/[0.045] px-4 text-sm font-medium text-white/80 transition hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-100/40"
+            >
+              Muat ulang halaman
+            </button>
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 rounded-3xl border border-dashed border-white/10 bg-white/[0.02]">
-            <p className="text-slate-500">Tidak ada kelas yang ditemukan.</p>
+          <div className="mt-8 flex flex-col items-start justify-between gap-5 rounded-[26px] border border-dashed border-white/[0.11] bg-white/[0.018] px-6 py-8 sm:flex-row sm:items-center sm:px-8">
+            <div>
+              <h3 className="text-base font-semibold text-white">
+                Belum ada hasil yang cocok
+              </h3>
+              <p className="mt-1.5 text-sm text-slate-400">
+                Coba kata kunci lain atau tampilkan kembali semua pilihan.
+              </p>
+            </div>
             <button
               type="button"
               onClick={() => setQ("")}
-              className="cursor-pointer mt-2 text-cyan-400 hover:underline text-sm"
+              className="h-10 shrink-0 cursor-pointer rounded-xl border border-cyan-100/20 bg-cyan-100/[0.06] px-4 text-sm font-medium text-cyan-50/85 transition hover:bg-cyan-100/[0.1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-100/40"
             >
-              Reset Pencarian
+              Hapus pencarian
             </button>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {filtered.map((k) => {
               const mentorIds = "mentor_ids" in k ? k.mentor_ids : [];
               const mentorObjs = mentorIds
@@ -370,7 +484,6 @@ export default function DaftarKelasPage() {
                       `${"class_ids" in item ? "package" : "class"}:${item.id}`,
                     )
                   }
-                  onAddToCartAnim={handleAddToCartAnim}
                 />
               );
             })}

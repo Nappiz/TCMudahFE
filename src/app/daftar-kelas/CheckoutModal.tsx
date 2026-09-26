@@ -1,10 +1,28 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import Modal from "@/components/modal/Modal";
-import { rupiah } from "../../../lib/format";
 import type { CheckoutInfo } from "@/types/catalog";
-import { AlertCircle } from "lucide-react";
+import { rupiah } from "../../../lib/format";
+
+type CheckoutModalProps = {
+  open: boolean;
+  onClose: () => void;
+  info: CheckoutInfo | null;
+  total: number;
+  senderName: string;
+  setSenderName: (value: string) => void;
+  note: string;
+  setNote: (value: string) => void;
+  setFile: (file: File | null) => void;
+  file?: File | null;
+  submitting: boolean;
+  submitErr: string | null;
+  onSubmit: () => void;
+};
+
+const inputClassName =
+  "h-11 w-full rounded-xl border border-white/[0.09] bg-[#071114]/75 px-3.5 text-sm text-white outline-none transition placeholder:text-slate-600 hover:border-white/[0.14] focus:border-cyan-100/35 focus:ring-4 focus:ring-cyan-100/[0.06]";
 
 export default function CheckoutModal({
   open,
@@ -20,21 +38,7 @@ export default function CheckoutModal({
   submitting,
   submitErr,
   onSubmit,
-}: {
-  open: boolean;
-  onClose: () => void;
-  info: CheckoutInfo | null;
-  total: number;
-  senderName: string;
-  setSenderName: (v: string) => void;
-  note: string;
-  setNote: (v: string) => void;
-  setFile: (f: File | null) => void;
-  file?: File | null;
-  submitting: boolean;
-  submitErr: string | null;
-  onSubmit: () => void;
-}) {
+}: CheckoutModalProps) {
   if (!info) {
     return (
       <Modal open={false} onClose={onClose} title="Selesaikan Pembayaran" />
@@ -47,17 +51,19 @@ export default function CheckoutModal({
       onClose={() => !submitting && onClose()}
       dismissible={!submitting}
       title="Selesaikan Pembayaran"
+      description="Transfer sesuai jumlah berikut, lalu lampirkan bukti pembayaran."
       size="md"
+      mobilePosition="bottom"
       actions={[
         {
-          label: "Batal",
+          label: "Kembali",
           variant: "ghost",
           onClick: onClose,
           disabled: submitting,
         },
         {
-          label: "Konfirmasi Pembayaran",
-          loadingLabel: "Memproses...",
+          label: "Konfirmasi pembayaran",
+          loadingLabel: "Mengirim pembayaran...",
           variant: "primary",
           onClick: onSubmit,
           loading: submitting,
@@ -65,118 +71,145 @@ export default function CheckoutModal({
       ]}
     >
       <div className="space-y-5">
-                <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 to-cyan-700 p-5 text-white shadow-lg shrink-0">
-                    <div className="absolute top-0 right-0 -mr-4 -mt-4 h-24 w-24 rounded-full bg-white/10 blur-xl"></div>
-                    <div className="flex justify-end items-start mb-6">
-                        <span className="font-mono font-bold text-lg">{info.bank_name}</span>
-                    </div>
-                    <div className="mb-2">
-                        <div className="text-xs opacity-70 uppercase tracking-wider">No. Rekening</div>
-                        <div className="font-mono text-xl tracking-widest">{info.bank_account}</div>
-                    </div>
-                    <div>
-                        <div className="text-xs opacity-70 uppercase tracking-wider">Atas Nama</div>
-                        <div className="font-medium">{info.bank_holder}</div>
-                    </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
-                    <span className="text-slate-400 text-sm">Total Tagihan</span>
-                    <span className="text-cyan-400 font-bold text-lg font-mono">{rupiah(total)}</span>
-                </div>
-
-                <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label htmlFor="sender-name" className="text-xs font-medium text-slate-400">Nama Pengirim</label>
-                            <input
-                                id="sender-name"
-                                value={senderName}
-                                onChange={(e) => setSenderName(e.target.value)}
-                                placeholder="Nama di rekening"
-                                className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan-500 focus:outline-none transition-colors"
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label htmlFor="payment-note" className="text-xs font-medium text-slate-400">Catatan (Opsional)</label>
-                            <input
-                                id="payment-note"
-                                value={note}
-                                onChange={(e) => setNote(e.target.value)}
-                                placeholder="e.g. Pembayaran Dasprog"
-                                className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan-500 focus:outline-none transition-colors"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <p className="text-xs font-medium text-slate-400">Bukti Transfer</p>
-                        
-                        {!file ? (
-                            <div className="relative group">
-                                <input
-                                    id="proof-file"
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                                    className="peer absolute inset-0 h-full w-full opacity-0 cursor-pointer z-10"
-                                />
-                                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.02] p-6 text-center transition-all group-hover:bg-white/[0.05] group-hover:border-cyan-500/50 group-active:scale-[0.99]">
-                                    <span className="text-sm font-medium text-slate-300">
-                                        Klik atau seret gambar ke sini
-                                    </span>
-                                    <span className="mt-1 text-xs text-slate-500">
-                                        Format JPG/PNG (Max. 5MB)
-                                    </span>
-                                </div>
-                            </div>
-                        ) : (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="relative flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 pr-10"
-                            >
-                                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-950 border border-white/10">
-                                    <img 
-                                        src={URL.createObjectURL(file)} 
-                                        alt="Preview Bukti" 
-                                        className="h-full w-full object-cover"
-                                        onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)} // Prevent memory leak
-                                    />
-                                </div>
-                                
-                                <div className="min-w-0 flex-1">
-                                    <p className="truncate text-sm font-medium text-white">{file.name}</p>
-                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                        <span className="text-xs text-slate-400">{(file.size / 1024).toFixed(0)} KB</span>
-                                        <span className="h-1 w-1 rounded-full bg-slate-600"></span>
-                                        <span className="text-xs text-emerald-400">Siap diupload</span>
-                                    </div>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setFile(null)}
-                                    className="cursor-pointer absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1.5 text-xs text-slate-400 transition-all hover:bg-red-500/10 hover:text-red-300"
-                                    title="Hapus file"
-                                >
-                                    Hapus
-                                </button>
-                            </motion.div>
-                        )}
-
-                        {submitErr && (
-                            <motion.div 
-                                initial={{ opacity: 0, height: 0 }} 
-                                animate={{ opacity: 1, height: "auto" }}
-                                className="flex items-center gap-2 rounded-lg bg-red-500/10 p-3 text-xs text-red-300 border border-red-500/20"
-                            >
-                                <AlertCircle className="w-4 h-4 shrink-0" /> {submitErr}
-                            </motion.div>
-                        )}
-                    </div>
-                </div>
+        <section
+          aria-label="Informasi rekening tujuan"
+          className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a171a]"
+        >
+          <div className="flex items-center justify-between gap-4 border-b border-white/[0.07] px-4 py-3.5 sm:px-5">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+              Transfer ke rekening
+            </span>
+            <span className="text-sm font-semibold text-cyan-100/85">
+              {info.bank_name}
+            </span>
+          </div>
+          <dl className="grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:px-5 sm:py-5">
+            <div>
+              <dt className="text-[10px] font-medium uppercase tracking-[0.13em] text-slate-500">
+                Nomor rekening
+              </dt>
+              <dd className="mt-1.5 break-all font-mono text-xl font-semibold tracking-[0.06em] text-white sm:text-2xl">
+                {info.bank_account}
+              </dd>
             </div>
+            <div className="sm:text-right">
+              <dt className="text-[10px] font-medium uppercase tracking-[0.13em] text-slate-500">
+                Atas nama
+              </dt>
+              <dd className="mt-1.5 text-sm font-medium text-white/85">
+                {info.bank_holder}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-cyan-100/[0.11] bg-cyan-100/[0.045] px-4 py-3.5">
+          <span className="text-sm text-slate-300/75">Total pembayaran</span>
+          <span className="text-lg font-semibold tracking-tight text-cyan-50">
+            {rupiah(total)}
+          </span>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <label
+              htmlFor="sender-name"
+              className="text-xs font-medium text-slate-300/75"
+            >
+              Nama pengirim
+            </label>
+            <input
+              id="sender-name"
+              value={senderName}
+              onChange={(event) => setSenderName(event.target.value)}
+              placeholder="Sesuai nama di rekening"
+              autoComplete="name"
+              className={inputClassName}
+            />
+          </div>
+          <div className="space-y-2">
+            <label
+              htmlFor="payment-note"
+              className="text-xs font-medium text-slate-300/75"
+            >
+              Catatan <span className="text-slate-500">(opsional)</span>
+            </label>
+            <input
+              id="payment-note"
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              placeholder="Contoh: pembayaran Daspro"
+              className={inputClassName}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2.5">
+          <div>
+            <p className="text-xs font-medium text-slate-200/80">
+              Bukti transfer
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Gambar JPG atau PNG, maksimal 5 MB.
+            </p>
+          </div>
+
+          {file ? (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center justify-between gap-4 rounded-xl border border-emerald-200/[0.14] bg-emerald-200/[0.04] p-3.5"
+            >
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-white/90">
+                  {file.name}
+                </p>
+                <p className="mt-1 text-xs text-emerald-100/60">
+                  {(file.size / 1024).toFixed(0)} KB · siap diunggah
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFile(null)}
+                className="shrink-0 cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-100/40"
+              >
+                Ganti file
+              </button>
+            </motion.div>
+          ) : (
+            <div>
+              <input
+                key={file?.name ?? "empty"}
+                id="proof-file"
+                type="file"
+                accept="image/*"
+                onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                className="peer sr-only"
+              />
+              <label
+                htmlFor="proof-file"
+                className="flex min-h-[96px] cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-white/[0.14] bg-white/[0.018] px-4 py-5 text-center transition hover:border-cyan-100/25 hover:bg-cyan-100/[0.025] peer-focus-visible:ring-2 peer-focus-visible:ring-cyan-100/45"
+              >
+                <span className="text-sm font-medium text-white/80">
+                  Pilih gambar bukti transfer
+                </span>
+                <span className="mt-1 text-xs text-slate-500">
+                  Klik untuk memilih file dari perangkat
+                </span>
+              </label>
+            </div>
+          )}
+
+          {submitErr ? (
+            <div
+              role="alert"
+              className="rounded-xl border border-rose-200/[0.12] bg-rose-200/[0.04] px-3.5 py-3 text-xs leading-5 text-rose-100/80"
+            >
+              {submitErr}
+            </div>
+          ) : null}
+        </div>
+      </div>
     </Modal>
   );
 }

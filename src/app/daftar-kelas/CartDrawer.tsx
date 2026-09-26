@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import imageCompression from "browser-image-compression";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, ShoppingBag, Trash2, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useGlobalError } from "@/components/providers/ErrorProvider";
 import type {
@@ -145,130 +145,152 @@ export default function CartDrawer({
   return (
     <>
       <AnimatePresence>
-        {open && (
+        {open ? (
           <>
             <motion.div
-              className="fixed inset-0 z-[70] bg-slate-950/60 backdrop-blur-sm"
+              className="fixed inset-0 z-[70] bg-[#020809]/70 backdrop-blur-sm"
               onClick={() => setOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
-            <motion.div
-              className="fixed right-0 top-0 z-[71] h-full w-full max-w-md border-l border-white/10 bg-slate-900 shadow-2xl flex flex-col"
+            <motion.aside
+              aria-label="Keranjang belanja"
+              className="fixed right-0 top-0 z-[71] flex h-dvh w-full max-w-md flex-col border-l border-white/[0.08] bg-[#091417] shadow-[-24px_0_80px_rgba(0,0,0,0.35)]"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
-              <div className="flex items-center justify-between p-5 border-b border-white/10 bg-slate-900/50">
-                <div className="flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5 text-cyan-400" />
-                  <span className="text-lg font-bold text-white">
-                    Keranjang Saya
-                  </span>
+              <header className="flex items-start justify-between gap-4 border-b border-white/[0.07] px-5 py-5 sm:px-6">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-100/55">
+                    Pilihan belajar
+                  </p>
+                  <h2 className="mt-1 text-lg font-semibold tracking-tight text-white">
+                    Keranjang
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {full.length} item dipilih
+                  </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="cursor-pointer p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                  aria-label="Tutup keranjang"
+                  className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.025] text-slate-400 transition hover:bg-white/[0.07] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-100/40"
                 >
-                  <X className="w-5 h-5" />
+                  <X aria-hidden="true" className="h-4 w-4" />
                 </button>
-              </div>
+              </header>
 
-              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              <div className="flex-1 space-y-3 overflow-y-auto px-5 py-5 sm:px-6">
                 <AnimatePresence initial={false} mode="popLayout">
                   {full.length === 0 ? (
                     <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="flex flex-col items-center justify-center h-64 text-center"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.1] bg-white/[0.015] px-6 text-center"
                     >
-                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                        <ShoppingBag className="w-8 h-8 text-slate-600" />
-                      </div>
-                      <p className="text-slate-400">Keranjang masih kosong.</p>
+                      <p className="text-base font-semibold text-white/85">
+                        Keranjang masih kosong
+                      </p>
+                      <p className="mt-2 max-w-[250px] text-sm leading-6 text-slate-400">
+                        Pilih kelas atau bundle yang ingin kamu pelajari.
+                      </p>
                       <button
                         type="button"
                         onClick={() => setOpen(false)}
-                        className="cursor-pointer mt-4 text-cyan-400 text-sm hover:underline"
+                        className="mt-5 cursor-pointer text-sm font-medium text-cyan-100/80 transition hover:text-white focus-visible:outline-none focus-visible:underline"
                       >
-                        Cari kelas dulu
+                        Lihat pilihan kelas
                       </button>
                     </motion.div>
                   ) : (
                     full.map(({ line, item, offer }) => (
-                      <motion.div
+                      <motion.article
                         key={line.key}
                         layout
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="flex gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04]"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        className="rounded-2xl border border-white/[0.075] bg-white/[0.025] p-4 transition-colors hover:bg-white/[0.04]"
                       >
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-medium text-white truncate">
-                            {item.title}
-                          </h4>
-                          <p className="text-xs text-cyan-400 font-mono mt-1">
-                            {rupiah(offer?.price ?? item.price)}
-                          </p>
-                          {offer && (
-                            <p className="mt-1 text-xs text-slate-500">
-                              {offer.meeting_count} pertemuan
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-100/55">
+                              {line.itemType === "package"
+                                ? "Bundle belajar"
+                                : "Kelas satuan"}
                             </p>
-                          )}
-                        </div>
-
-                        <div className="flex items-center">
+                            <h3 className="mt-2 truncate text-sm font-semibold text-white">
+                              {item.title}
+                            </h3>
+                            {"class_ids" in item ? (
+                              <p className="mt-1.5 text-xs text-slate-400">
+                                {item.class_ids.length} kelas dalam bundle
+                              </p>
+                            ) : (
+                              <p className="mt-1.5 text-xs text-slate-400">
+                                {offer?.meeting_count} pertemuan
+                              </p>
+                            )}
+                          </div>
                           <button
                             type="button"
                             onClick={() => onRemove(line.key)}
                             aria-label={`Hapus ${item.title}`}
-                            className="cursor-pointer rounded-lg p-2 text-slate-500 hover:bg-red-500/10 hover:text-red-400"
+                            className="shrink-0 cursor-pointer rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-rose-200/[0.06] hover:text-rose-100/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-100/35"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            Hapus
                           </button>
                         </div>
-                      </motion.div>
+                        <div className="mt-4 flex items-center justify-between border-t border-white/[0.06] pt-3">
+                          <span className="text-xs text-slate-500">Harga</span>
+                          <span className="text-sm font-semibold tabular-nums text-white/85">
+                            {rupiah(offer?.price ?? item.price)}
+                          </span>
+                        </div>
+                      </motion.article>
                     ))
                   )}
                 </AnimatePresence>
               </div>
 
-              {full.length > 0 && (
-                <div className="p-5 border-t border-white/10 bg-slate-900">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-slate-400 text-sm">
-                      Total Pembayaran
-                    </span>
-                    <span className="text-xl font-bold text-white font-mono">
+              {full.length > 0 ? (
+                <footer className="border-t border-white/[0.07] bg-[#0a171a] px-5 py-5 sm:px-6">
+                  <div className="flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-xs text-slate-400">Total pembayaran</p>
+                      <p className="mt-1 text-[11px] text-slate-500">
+                        {full.length} item
+                      </p>
+                    </div>
+                    <span className="text-xl font-semibold tracking-tight text-white">
                       {rupiah(total)}
                     </span>
                   </div>
-
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="mt-5 grid grid-cols-[auto_minmax(0,1fr)] gap-3">
                     <button
                       type="button"
                       onClick={onClear}
-                      className="cursor-pointer col-span-1 flex items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-sm font-medium transition-colors"
+                      className="h-12 cursor-pointer rounded-xl border border-white/[0.09] bg-white/[0.025] px-4 text-sm font-medium text-slate-400 transition hover:border-rose-100/20 hover:bg-rose-100/[0.04] hover:text-rose-100/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-100/35"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      Kosongkan
                     </button>
                     <button
                       type="button"
                       onClick={openCheckout}
-                      className="cursor-pointer col-span-2 flex items-center justify-center gap-2 rounded-xl bg-white text-slate-950 hover:bg-cyan-50 text-sm font-bold h-12 transition-colors"
+                      className="h-12 cursor-pointer rounded-xl bg-cyan-100 px-4 text-sm font-semibold text-[#071314] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-100/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a171a]"
                     >
-                      Checkout <ArrowRight className="w-4 h-4" />
+                      Lanjut pembayaran
                     </button>
                   </div>
-                </div>
-              )}
-            </motion.div>
+                </footer>
+              ) : null}
+            </motion.aside>
           </>
-        )}
+        ) : null}
       </AnimatePresence>
 
       <CheckoutModal
