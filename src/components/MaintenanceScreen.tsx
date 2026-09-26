@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { STAFF_ENTRY_PATH } from "./providers/maintenanceGateLogic";
 
 type MaintenanceScreenProps = {
   message: string;
@@ -18,7 +19,7 @@ export default function MaintenanceScreen({ message }: MaintenanceScreenProps) {
           {message}
         </p>
         <Link
-          href="/login?next=%2Fcms"
+          href={STAFF_ENTRY_PATH}
           className="mt-7 inline-flex rounded-xl border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/15"
         >
           Masuk sebagai staf

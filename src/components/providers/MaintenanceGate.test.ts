@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 
-const { isMaintenanceBypassPath, shouldShowMaintenance } = await import(
-  // @ts-expect-error Node's strip-types runner resolves the explicit extension.
-  "./maintenanceGateLogic.ts"
-);
+const { isMaintenanceBypassPath, shouldShowMaintenance, STAFF_ENTRY_PATH } =
+  await import(
+    // @ts-expect-error Node's strip-types runner resolves the explicit extension.
+    "./maintenanceGateLogic.ts"
+  );
 
 assert.equal(isMaintenanceBypassPath("/cms"), true);
 assert.equal(isMaintenanceBypassPath("/cms/settings"), true);
@@ -15,3 +16,4 @@ assert.equal(shouldShowMaintenance("/peserta", true, false), true);
 assert.equal(shouldShowMaintenance("/cms", true, false), false);
 assert.equal(shouldShowMaintenance("/login", true, false), false);
 assert.equal(shouldShowMaintenance("/peserta", true, true), false);
+assert.equal(STAFF_ENTRY_PATH, "/cms");
