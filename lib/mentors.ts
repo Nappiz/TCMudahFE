@@ -1,5 +1,7 @@
 import { api } from "./admin";
 
+export const MAX_MENTOR_ACHIEVEMENTS = 8;
+
 export type Mentor = {
   id: string;
   name: string;

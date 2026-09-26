@@ -1,183 +1,132 @@
 "use client";
 
-import { Save, Trash2 } from "lucide-react";
 import type { Mentor } from "../../../../../lib/mentors";
 
 type Props = {
   list: Mentor[];
   isReadonly: boolean;
-  onChangeList: (updater: (prev: Mentor[]) => Mentor[]) => void;
-  onSaveRow: (mentor: Mentor) => void;
+  actionsDisabled?: boolean;
+  onEditRow: (mentor: Mentor) => void;
   onDeleteRow: (mentor: Mentor) => void;
 };
 
 export function MentorTable({
   list,
   isReadonly,
-  onChangeList,
-  onSaveRow,
+  actionsDisabled = false,
+  onEditRow,
   onDeleteRow,
 }: Props) {
-  const disabledAll = isReadonly;
-
   return (
-    <div className="overflow-x-auto rounded-2xl border border-white/10">
-      <table className="min-w-full border-collapse text-sm">
-        <thead className="bg-white/5 text-white/70">
-          <tr>
-            <th className="px-4 py-3 text-left font-medium">Nama</th>
-            <th className="px-4 py-3 text-left font-medium">Angkatan</th>
-            <th className="px-4 py-3 text-left font-medium">Prestasi (1–5)</th>
-            <th className="px-4 py-3 text-left font-medium">Tampil</th>
-            <th className="px-4 py-3 text-left font-medium">Aksi</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-white/10">
-          {list.map((row) => {
-            const disabled = disabledAll;
+    <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.035]">
+      <div className="flex flex-col gap-2 border-b border-white/[0.07] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold text-white">Daftar mentor</h2>
+          <p className="mt-1 text-xs text-white/45">
+            {list.length} mentor siap dikelola
+          </p>
+        </div>
+        <span className="text-xs text-white/35">
+          {isReadonly
+            ? "Hanya bisa melihat data"
+            : "Perubahan tersimpan setelah disimpan"}
+        </span>
+      </div>
+
+      {list.length === 0 ? (
+        <div className="p-10 text-center">
+          <p className="text-sm font-medium text-white">Belum ada mentor</p>
+          <p className="mt-1 text-sm text-white/45">
+            Tambahkan mentor pertama dari tombol di atas.
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-white/[0.06]">
+          {list.map((mentor) => {
+            const achievements = (mentor.achievements ?? [])
+              .map((item) => item.trim())
+              .filter(Boolean);
+            const displayName = mentor.name.trim() || "Mentor baru";
 
             return (
-              <tr key={row.id} className="bg-white/[0.03]">
-                <td className="px-4 py-3">
-                  <input
-                    className="w-56 rounded-lg border border-white/10 bg-transparent px-2 py-1 text-white/90 outline-none placeholder:text-white/40 disabled:opacity-60"
-                    value={row.name}
-                    onChange={(e) =>
-                      onChangeList((prev) =>
-                        prev.map((x) =>
-                          x.id === row.id ? { ...x, name: e.target.value } : x,
-                        ),
-                      )
-                    }
-                    placeholder="Nama"
-                    disabled={disabled}
-                  />
-                </td>
-                <td className="px-4 py-3">
-                  <input
-                    type="number"
-                    className="w-28 rounded-lg border border-white/10 bg-transparent px-2 py-1 text-white/90 outline-none disabled:opacity-60"
-                    value={row.angkatan}
-                    onChange={(e) =>
-                      onChangeList((prev) =>
-                        prev.map((x) =>
-                          x.id === row.id
-                            ? { ...x, angkatan: Number(e.target.value) }
-                            : x,
-                        ),
-                      )
-                    }
-                    disabled={disabled}
-                  />
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-2">
-                    {row.achievements.map((a, i) => (
-                      <input
-                        key={i}
-                        className="w-64 rounded-lg border border-white/10 bg-transparent px-2 py-1 text-white/90 outline-none placeholder:text-white/40 disabled:opacity-60"
-                        value={a}
-                        onChange={(e) =>
-                          onChangeList((prev) =>
-                            prev.map((x) =>
-                              x.id === row.id
-                                ? {
-                                    ...x,
-                                    achievements: x.achievements.map(
-                                      (y, yi) =>
-                                        yi === i ? e.target.value : y,
-                                    ),
-                                  }
-                                : x,
-                            ),
-                          )
-                        }
-                        placeholder={`Prestasi ${i + 1}`}
-                        disabled={disabled}
-                      />
-                    ))}
-                    {!disabled && row.achievements.length < 5 && (
-                      <button
-                        onClick={() =>
-                          onChangeList((prev) =>
-                            prev.map((x) =>
-                              x.id === row.id
-                                ? {
-                                    ...x,
-                                    achievements: [...x.achievements, ""],
-                                  }
-                                : x,
-                            ),
-                          )
-                        }
-                        className="cursor-pointer rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-xs text-white/80 hover:bg-white/15"
-                      >
-                        + Tambah
-                      </button>
-                    )}
-                    {!disabled && row.achievements.length > 1 && (
-                      <button
-                        onClick={() =>
-                          onChangeList((prev) =>
-                            prev.map((x) =>
-                              x.id === row.id
-                                ? {
-                                    ...x,
-                                    achievements: x.achievements.slice(0, -1),
-                                  }
-                                : x,
-                            ),
-                          )
-                        }
-                        className="rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-xs text-white/80 hover:bg-white/15"
-                      >
-                        − Hapus terakhir
-                      </button>
-                    )}
+              <article
+                key={mentor.id}
+                className="p-5 transition hover:bg-white/[0.02]"
+              >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-300/60">
+                      Angkatan {mentor.angkatan || "-"}
+                    </p>
+                    <h3 className="mt-1 truncate text-base font-semibold text-white">
+                      {displayName}
+                    </h3>
+                    <p className="mt-1 text-sm text-white/45">
+                      {achievements.length} prestasi tercatat
+                    </p>
                   </div>
-                </td>
-                <td className="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 accent-cyan-400"
-                    checked={row.visible}
-                    onChange={(e) =>
-                      onChangeList((prev) =>
-                        prev.map((x) =>
-                          x.id === row.id
-                            ? { ...x, visible: e.target.checked }
-                            : x,
-                        ),
-                      )
-                    }
-                    disabled={disabled}
-                  />
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <button
-                      disabled={disabled}
-                      onClick={() => onSaveRow(row)}
-                      className="cursor-pointer inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-white/90 hover:bg-white/15 disabled:opacity-60"
-                      title="Simpan"
+
+                  <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                    <span
+                      className={
+                        mentor.visible
+                          ? "rounded-lg border border-emerald-300/20 bg-emerald-300/[0.08] px-2.5 py-1.5 text-xs font-medium text-emerald-200/80"
+                          : "rounded-lg border border-white/[0.1] bg-white/[0.03] px-2.5 py-1.5 text-xs font-medium text-white/45"
+                      }
                     >
-                      <Save className="h-4 w-4" /> Simpan
-                    </button>
-                    <button
-                      disabled={disabled}
-                      onClick={() => onDeleteRow(row)}
-                      className="cursor-pointer inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-white/90 hover:bg-white/15 disabled:opacity-60"
-                      title="Hapus"
-                    >
-                      <Trash2 className="h-4 w-4" /> Hapus
-                    </button>
+                      {mentor.visible ? "Tampil" : "Disembunyikan"}
+                    </span>
+                    {!isReadonly ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onEditRow(mentor)}
+                          disabled={actionsDisabled}
+                          className="rounded-lg border border-cyan-300/20 px-3 py-1.5 text-xs font-medium text-cyan-100/80 transition hover:border-cyan-300/40 hover:bg-cyan-300/[0.08] hover:text-cyan-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onDeleteRow(mentor)}
+                          disabled={actionsDisabled}
+                          className="rounded-lg border border-rose-400/20 px-3 py-1.5 text-xs font-medium text-rose-200/80 transition hover:border-rose-300/40 hover:bg-rose-300/[0.06] hover:text-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Hapus
+                        </button>
+                      </>
+                    ) : null}
                   </div>
-                </td>
-              </tr>
+                </div>
+
+                <div className="mt-4 grid gap-2 md:grid-cols-2">
+                  {achievements.slice(0, 4).map((achievement, index) => (
+                    <div
+                      key={`${mentor.id}-achievement-${index}`}
+                      className="flex min-w-0 items-start gap-3 rounded-xl border border-white/[0.07] bg-slate-950/25 px-3 py-2.5"
+                    >
+                      <span className="pt-0.5 text-[10px] font-semibold tracking-[0.12em] text-cyan-300/60">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="min-w-0 text-sm leading-relaxed text-white/65">
+                        {achievement}
+                      </span>
+                    </div>
+                  ))}
+                  {achievements.length === 0 ? (
+                    <p className="text-sm text-white/35">Belum ada prestasi.</p>
+                  ) : null}
+                  {achievements.length > 4 ? (
+                    <p className="self-center text-xs text-white/35">
+                      +{achievements.length - 4} prestasi lainnya
+                    </p>
+                  ) : null}
+                </div>
+              </article>
             );
           })}
-        </tbody>
-      </table>
-    </div>
+        </div>
+      )}
+    </section>
   );
 }

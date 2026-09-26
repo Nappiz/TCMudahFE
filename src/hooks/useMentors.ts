@@ -1,17 +1,18 @@
 // src/hooks/useMentors.ts
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 import { fetchMe, type User } from "../../lib/admin";
 import {
-  fetchMentors,
   createMentor,
-  updateMentor,
   deleteMentor,
+  fetchMentors,
+  MAX_MENTOR_ACHIEVEMENTS,
   type Mentor,
   type MentorPayload,
+  updateMentor,
 } from "../../lib/mentors";
 
 export function useMentors() {
@@ -40,25 +41,28 @@ export function useMentors() {
       try {
         const rows = await fetchMentors();
         setList(rows);
-      } catch (e: any) {
-        setError(e?.message ?? String(e) ?? "Gagal memuat mentor.");
+      } catch (errorValue: unknown) {
+        setError(
+          errorValue instanceof Error
+            ? errorValue.message
+            : "Gagal memuat mentor.",
+        );
         setList([]);
       }
     })();
   }, [router]);
 
-  function addDraftMentor() {
-    if (isReadonly || !list) return;
-    setList((prev) => [
-      {
-        id: "new-" + Math.random().toString(36).slice(2),
-        name: "",
-        angkatan: new Date().getFullYear(),
-        achievements: [""],
-        visible: true,
-      },
-      ...(prev ?? []),
-    ]);
+  function addDraftMentor(): Mentor | null {
+    if (isReadonly || !list) return null;
+    const draft: Mentor = {
+      id: `new-${Math.random().toString(36).slice(2)}`,
+      name: "",
+      angkatan: new Date().getFullYear(),
+      achievements: [""],
+      visible: true,
+    };
+    setList((prev) => [draft, ...(prev ?? [])]);
+    return draft;
   }
 
   function buildPayload(m: Mentor): MentorPayload {
@@ -66,8 +70,23 @@ export function useMentors() {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    if (cleanAchievements.length < 1 || cleanAchievements.length > 5) {
-      throw new Error("Prestasi harus diisi 1 sampai 5 item.");
+    if (!m.name.trim()) {
+      throw new Error("Nama mentor wajib diisi.");
+    }
+    if (
+      !Number.isInteger(m.angkatan) ||
+      m.angkatan < 1900 ||
+      m.angkatan > 2100
+    ) {
+      throw new Error("Angkatan harus berupa tahun yang valid.");
+    }
+    if (
+      cleanAchievements.length < 1 ||
+      cleanAchievements.length > MAX_MENTOR_ACHIEVEMENTS
+    ) {
+      throw new Error(
+        `Prestasi harus diisi 1 sampai ${MAX_MENTOR_ACHIEVEMENTS} item.`,
+      );
     }
 
     return {
@@ -86,15 +105,11 @@ export function useMentors() {
 
     if (m.id.startsWith("new-")) {
       const saved = await createMentor(payload);
-      setList((prev) =>
-        (prev ?? []).map((x) => (x.id === m.id ? saved : x)),
-      );
+      setList((prev) => (prev ?? []).map((x) => (x.id === m.id ? saved : x)));
       return "created";
     } else {
       const saved = await updateMentor(m.id, payload);
-      setList((prev) =>
-        (prev ?? []).map((x) => (x.id === m.id ? saved : x)),
-      );
+      setList((prev) => (prev ?? []).map((x) => (x.id === m.id ? saved : x)));
       return "updated";
     }
   }
@@ -119,7 +134,7 @@ export function useMentors() {
   return {
     me,
     list,
-    setList, 
+    setList,
     error,
     isReadonly,
     addDraftMentor,

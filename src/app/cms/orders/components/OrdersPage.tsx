@@ -164,9 +164,15 @@ function OrdersLoadingState() {
   return (
     <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0c111a]/80">
       <div className="flex h-12 items-center gap-4 border-b border-white/[0.06] px-5">
-        {["w-16", "w-28", "w-20", "w-16", "w-14"].map((width) => (
+        {[
+          { id: "order", width: "w-16" },
+          { id: "participant", width: "w-28" },
+          { id: "total", width: "w-20" },
+          { id: "status", width: "w-16" },
+          { id: "action", width: "w-14" },
+        ].map(({ id, width }) => (
           <div
-            key={width}
+            key={id}
             className={`h-2 animate-pulse rounded-full bg-white/[0.08] ${width}`}
           />
         ))}
@@ -177,9 +183,15 @@ function OrdersLoadingState() {
             key={key}
             className="grid grid-cols-[1fr_1.4fr_1.2fr_0.7fr_0.7fr] gap-4 rounded-xl px-3 py-5"
           >
-            {["w-20", "w-36", "w-28", "w-16", "w-14"].map((width) => (
+            {[
+              { id: "order", width: "w-20" },
+              { id: "participant", width: "w-36" },
+              { id: "created", width: "w-28" },
+              { id: "status", width: "w-16" },
+              { id: "action", width: "w-14" },
+            ].map(({ id, width }) => (
               <div
-                key={width}
+                key={id}
                 className={`h-3 animate-pulse rounded-full bg-white/[0.06] ${width}`}
               />
             ))}

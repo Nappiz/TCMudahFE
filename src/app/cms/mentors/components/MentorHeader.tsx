@@ -1,32 +1,59 @@
-"use client";
-
-import { Plus, Lock } from "lucide-react";
-
 type Props = {
   isReadonly: boolean;
   onAdd: () => void;
+  total: number;
+  visibleCount: number;
 };
 
-export function MentorHeader({ isReadonly, onAdd }: Props) {
+export function MentorHeader({
+  isReadonly,
+  onAdd,
+  total,
+  visibleCount,
+}: Props) {
   return (
-    <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-      <div>
-        <h2 className="text-lg font-semibold text-white">Mentor</h2>
-        <p className="text-sm text-white/60">
-          Kelola daftar mentor.
-        </p>
+    <header className="border-b border-white/[0.08] pb-6">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-cyan-300/70">
+            CMS / Mentor
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">
+            Mentor
+          </h1>
+          <p className="mt-1 max-w-xl text-sm text-white/50">
+            Atur daftar mentor, prestasi, dan visibilitas profil publik.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-end gap-6 sm:gap-8">
+          <div>
+            <p className="text-2xl font-semibold tracking-tight text-white">
+              {total}
+            </p>
+            <p className="mt-1 text-xs text-white/40">total mentor</p>
+          </div>
+          <div>
+            <p className="text-2xl font-semibold tracking-tight text-white">
+              {visibleCount}
+            </p>
+            <p className="mt-1 text-xs text-white/40">tampil publik</p>
+          </div>
+        </div>
       </div>
-      <div className="flex items-center gap-2">
+
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         {isReadonly ? (
-          <span className="inline-flex items-center gap-1 rounded-lg border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/70">
-            <Lock className="h-3.5 w-3.5" /> Read-only
+          <span className="rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/50">
+            Mode baca saja
           </span>
         ) : (
           <button
+            type="button"
             onClick={onAdd}
-            className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/15"
+            className="rounded-xl bg-cyan-300 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200"
           >
-            <Plus className="h-4 w-4" /> Tambah Mentor
+            Tambah mentor
           </button>
         )}
       </div>
