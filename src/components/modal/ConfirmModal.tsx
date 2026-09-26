@@ -62,7 +62,9 @@ export default function ConfirmModal({
         {
           label: cancelText,
           variant: "ghost",
-          onClick: () => !isLoading && onClose(),
+          onClick: () => {
+            if (!isLoading) onClose();
+          },
           disabled: isLoading,
         },
         {
