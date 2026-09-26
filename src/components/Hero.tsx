@@ -205,14 +205,6 @@ export default function Hero() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-20 items-center mb-24 lg:mb-32">
           <div className="text-left order-1">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/30 border border-cyan-500/20 text-cyan-400 text-xs font-bold mb-6 animate-fade-in-up">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-              </span>
-              TC Mudah Batch 8
-            </div>
-
             <h1 className="text-5xl sm:text-4xl md:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-6 animate-fade-in-up delay-100">
               Belajar Mata Kuliah <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 animate-gradient-x">

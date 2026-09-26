@@ -1,5 +1,5 @@
 "use client";
-import { GraduationCap, Star } from "lucide-react";
+
 import FadeIn from "./ui/FadeIn";
 
 type Mentor = {
@@ -9,63 +9,132 @@ type Mentor = {
   achievements: string[];
 };
 
-function getInitials(name: string) {
-  return name.split(" ").slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
+function cleanAchievements(achievements: string[]) {
+  return achievements.map((achievement) => achievement.trim()).filter(Boolean);
 }
 
 export default function MentorsClient({ data }: { data: Mentor[] | null }) {
   return (
-    <section id="mentor" className="py-32 bg-slate-950 relative">
-      <div className="absolute left-0 top-1/4 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-20">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Mentor & Asisten Dosen</h2>
-          <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-            Belajar langsung dari mereka yang sudah menaklukan soal-soal tersulit di TC.
-          </p>
+    <section
+      id="mentor"
+      className="relative scroll-mt-20 overflow-hidden bg-slate-950 py-24 sm:py-32"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_8%,rgba(34,211,238,0.08),transparent_34%),radial-gradient(circle_at_90%_52%,rgba(14,165,233,0.06),transparent_30%)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-cyan-300/25 to-transparent"
+      />
+
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-8 border-b border-white/[0.08] pb-10">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300/70">
+              Tim pengajar
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-5xl">
+              Mentor &amp; Asisten Dosen
+            </h2>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-400 sm:text-lg">
+              Belajar dari mereka yang sudah melewati tantangan akademik dan
+              memahami cara menjelaskan konsep dengan jelas.
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {!data && [1,2,3,4].map(i => <div key={i} className="h-[400px] rounded-2xl bg-slate-900 animate-pulse border border-white/5" />)}
-          {data && data.length === 0 && <div className="col-span-full text-center text-slate-500 py-10">Data mentor belum tersedia.</div>}
+        <div className="mt-10">
+          {!data ? (
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+              {["one", "two", "three", "four"].map((key) => (
+                <div
+                  key={key}
+                  className="h-72 animate-pulse rounded-2xl border border-white/[0.08] bg-white/[0.035]"
+                />
+              ))}
+            </div>
+          ) : data.length === 0 ? (
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] px-6 py-12 text-center text-sm text-slate-500">
+              Data mentor belum tersedia.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+              {data.map((mentor, index) => {
+                const achievements = cleanAchievements(mentor.achievements);
 
-          {data?.map((m, i) => (
-            <FadeIn key={m.id} delay={i * 100}>
-              <div
-                className="group relative h-[420px] rounded-3xl overflow-hidden bg-slate-900 border border-white/10 hover:border-cyan-500/50 transition-colors duration-500"
-              >
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-800 to-slate-950" />
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent)]" />
-                
-                <div className="absolute top-0 left-0 w-full h-2/3 flex items-center justify-center bg-gradient-to-b from-slate-800/50 to-slate-950/0 group-hover:scale-105 transition-transform duration-700">
-                   <span className="text-9xl font-bold text-slate-800 select-none group-hover:text-slate-700 transition-colors">
-                      {getInitials(m.name)}
-                   </span>
-                </div>
+                return (
+                  <FadeIn key={mentor.id} delay={index * 100}>
+                    <article className="group relative h-full overflow-hidden rounded-2xl border border-white/[0.09] bg-white/[0.035] transition duration-500 hover:border-cyan-300/35 hover:bg-white/[0.05]">
+                      <div
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/[0.08] via-transparent to-transparent opacity-60 transition duration-500 group-hover:opacity-100"
+                      />
 
-                <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent pt-20">
-                  <div className="mb-1 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-950/30 text-[10px] font-bold text-cyan-400 uppercase tracking-wide">
-                    <GraduationCap className="w-3 h-3" />
-                    Angkatan {m.angkatan}
-                  </div>
-                  
-                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
-                    {m.name}
-                  </h3>
-                  
-                  <div className="space-y-2">
-                    {m.achievements.slice(0, 5).map((ach, idx) => (
-                      <div key={idx} className="flex items-start gap-2 text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
-                        <Star className="w-3 h-3 text-yellow-500/70 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-1">{ach}</span>
+                      <div className="relative flex h-full flex-col p-6 sm:p-7">
+                        <div className="flex items-start justify-between gap-6">
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-300/65">
+                              Mentor
+                            </p>
+                            <h3 className="mt-2 truncate text-xl font-semibold tracking-tight text-white transition-colors group-hover:text-cyan-100 sm:text-2xl">
+                              {mentor.name}
+                            </h3>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">
+                              Angkatan
+                            </p>
+                            <p className="mt-1 text-sm font-medium text-white/75">
+                              {mentor.angkatan}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-6 flex-1 border-t border-white/[0.08] pt-5">
+                          <div className="flex items-center justify-between gap-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
+                              Rekam jejak
+                            </p>
+                            <span className="text-xs text-white/35">
+                              {achievements.length} prestasi
+                            </span>
+                          </div>
+
+                          {achievements.length > 0 ? (
+                            <ol className="mt-4 grid gap-2 sm:grid-cols-2">
+                              {achievements.map(
+                                (achievement, achievementIndex) => (
+                                  <li
+                                    key={`${mentor.id}-achievement-${achievementIndex}`}
+                                    className="flex min-w-0 items-start gap-3 rounded-xl border border-white/[0.07] bg-slate-950/25 px-3 py-3"
+                                  >
+                                    <span className="pt-0.5 text-[10px] font-semibold tracking-[0.12em] text-cyan-300/60">
+                                      {String(achievementIndex + 1).padStart(
+                                        2,
+                                        "0",
+                                      )}
+                                    </span>
+                                    <span className="min-w-0 text-sm leading-relaxed text-slate-300/75 transition-colors group-hover:text-slate-200">
+                                      {achievement}
+                                    </span>
+                                  </li>
+                                ),
+                              )}
+                            </ol>
+                          ) : (
+                            <p className="mt-4 text-sm text-white/35">
+                              Belum ada prestasi yang ditambahkan.
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </FadeIn>
-          ))}
+                    </article>
+                  </FadeIn>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </section>

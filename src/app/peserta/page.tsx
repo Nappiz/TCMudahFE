@@ -1,6 +1,6 @@
 "use client";
+
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -26,13 +26,18 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (init?.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  const r = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
     ...init,
     headers,
   });
-  if (!r.ok) throw new Error((await r.text()) || r.statusText);
-  return (await r.json()) as T;
+  if (!response.ok)
+    throw new Error((await response.text()) || response.statusText);
+  return (await response.json()) as T;
+}
+
+function getClassHref(title: string) {
+  return `/peserta/kelas/${encodeURIComponent(title.replace(/\s+/g, "-").toLowerCase())}`;
 }
 
 export default function PesertaIndex() {
@@ -43,46 +48,48 @@ export default function PesertaIndex() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+
+    void (async () => {
       setLoading(true);
       try {
-        const m = await api<Me>("/me");
+        const currentUser = await api<Me>("/me");
         if (cancelled) return;
-        setMe(m);
+        setMe(currentUser);
 
-        if (m.role === "peserta") {
-          const check = await fetch(`${API_BASE}/me/has-access`, {
+        if (currentUser.role === "peserta") {
+          const accessResponse = await fetch(`${API_BASE}/me/has-access`, {
             credentials: "include",
           });
-          const { has_access } = await check.json();
+          const { has_access: hasAccess } = await accessResponse.json();
 
-          if (!has_access) {
+          if (!hasAccess) {
             router.replace("/");
             return;
           }
 
-          const enrolls = await api<Enrollment[]>("/enrollments/me");
-          const activeIds = enrolls
-            .filter((e) => e.active)
-            .map((e) => e.class_id);
+          const enrollments = await api<Enrollment[]>("/enrollments/me");
+          const activeIds = enrollments
+            .filter((enrollment) => enrollment.active)
+            .map((enrollment) => enrollment.class_id);
 
           if (activeIds.length > 0) {
             const catalog = await fetchCatalog();
-            const myData = catalog.classes.filter((c) =>
-              activeIds.includes(c.id),
+            const enrolledClasses = catalog.classes.filter((classItem) =>
+              activeIds.includes(classItem.id),
             );
-            setMyClasses(myData);
+            setMyClasses(enrolledClasses);
           }
         } else {
-          const cls = await api<ClassItem[]>("/admin/classes");
-          setMyClasses(cls || []);
+          const classes = await api<ClassItem[]>("/admin/classes");
+          setMyClasses(classes || []);
         }
-      } catch (e) {
-        console.error(e);
+      } catch (errorValue: unknown) {
+        console.error(errorValue);
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
+
     return () => {
       cancelled = true;
     };
@@ -90,88 +97,142 @@ export default function PesertaIndex() {
 
   if (loading) {
     return (
-      <div className="h-[50vh] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
+      <div className="space-y-6 animate-pulse">
+        <div className="space-y-3 border-b border-white/[0.08] pb-8">
+          <div className="h-3 w-32 rounded-full bg-white/[0.08]" />
+          <div className="h-9 w-72 max-w-full rounded-full bg-white/[0.08]" />
+          <div className="h-4 w-[30rem] max-w-full rounded-full bg-white/[0.06]" />
+        </div>
+        <div className="h-5 w-36 rounded-full bg-white/[0.08]" />
+        <div className="grid gap-5 md:grid-cols-2">
+          {["one", "two", "three", "four"].map((key) => (
+            <div
+              key={key}
+              className="h-60 rounded-2xl border border-white/[0.08] bg-white/[0.035]"
+            />
+          ))}
+        </div>
       </div>
     );
   }
 
+  const firstName = me?.full_name?.split(" ")[0] || "Peserta";
+
   return (
-    <div className="space-y-8">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border border-white/5 p-8">
-        <div className="absolute top-0 right-0 -mr-10 -mt-10 w-64 h-64 bg-cyan-500/10 blur-[80px] rounded-full pointer-events-none"></div>
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold mb-4">
-            <Sparkles className="w-3 h-3" /> Dashboard Belajar
+    <div className="space-y-8 pb-10">
+      <header className="relative border-b border-white/[0.08] pb-8 pt-4">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-0 top-0 h-72 w-72 rounded-full bg-cyan-400/[0.07] blur-3xl"
+        />
+        <div className="relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300/70">
+              Dashboard peserta
+            </p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              Halo, {firstName}
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-400 sm:text-base">
+              Lanjutkan kelas yang sedang kamu ikuti dan buka materi yang ingin
+              dipelajari hari ini.
+            </p>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Halo, {me?.full_name?.split(" ")[0]}! 👋
-          </h1>
-          <p className="text-slate-400 max-w-xl">
-            Siap melanjutkan progres belajarmu hari ini? Pilih kelas di bawah
-            ini untuk mulai belajar.
+
+          <div className="shrink-0 md:text-right">
+            <p className="text-3xl font-semibold tracking-tight text-white">
+              {myClasses.length}
+            </p>
+            <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/40">
+              kelas aktif
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.035]">
+        <div className="flex flex-col gap-2 border-b border-white/[0.07] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-300/60">
+              Ruang belajar
+            </p>
+            <h2 className="mt-1 text-lg font-semibold text-white">
+              Kelas kamu
+            </h2>
+          </div>
+          <p className="text-xs text-white/35">
+            Pilih kelas untuk membuka materi
           </p>
         </div>
-      </div>
-
-      <div>
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-slate-500" /> Kelas Kamu
-        </h2>
 
         {myClasses.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-10 text-center">
-            <p className="text-slate-500 mb-4">
-              Kamu belum memiliki kelas aktif.
+          <div className="px-6 py-12 text-center">
+            <p className="text-sm font-medium text-white">
+              Belum ada kelas aktif
             </p>
-            <Link href="/daftar-kelas">
-              <button
-                type="button"
-                className="cursor-pointer px-4 py-2 rounded-xl bg-white text-slate-950 font-bold text-sm hover:bg-slate-200 transition-colors"
-              >
-                Cari Kelas Sekarang
-              </button>
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-slate-500">
+              Daftar kelas yang tersedia untuk mulai membangun rutinitas belajar
+              kamu.
+            </p>
+            <Link
+              href="/daftar-kelas"
+              className="mt-5 inline-flex rounded-xl bg-cyan-300 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200"
+            >
+              Cari kelas
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {myClasses.map((c, i) => (
+          <div className="grid gap-5 p-5 md:grid-cols-2">
+            {myClasses.map((classItem, index) => (
               <Link
-                href={`/peserta/kelas/${encodeURIComponent(c.title.replace(/\s+/g, "-").toLowerCase())}`}
-                key={c.id}
+                key={classItem.id}
+                href={getClassHref(classItem.title)}
+                className="group block h-full"
               >
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                <motion.article
+                  initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="group relative h-full flex flex-col justify-between p-6 rounded-2xl bg-slate-900 border border-white/10 hover:border-cyan-500/30 hover:bg-slate-800/80 transition-all duration-300"
+                  transition={{ delay: index * 0.08 }}
+                  className="relative flex h-full min-h-60 flex-col overflow-hidden rounded-2xl border border-white/[0.09] bg-slate-950/35 p-6 transition duration-300 hover:border-cyan-300/35 hover:bg-white/[0.045]"
                 >
-                  <div>
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center mb-4 text-cyan-400 border border-white/5">
-                      <BookOpen className="w-5 h-5" />
-                    </div>
-                    <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors line-clamp-1">
-                      {c.title}
-                    </h3>
-                    <p className="text-sm text-slate-400 line-clamp-2">
-                      {c.description}
-                    </p>
-                  </div>
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/[0.08] via-transparent to-transparent opacity-60 transition duration-300 group-hover:opacity-100"
+                  />
 
-                  <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
-                    <span className="text-xs text-slate-500 font-mono">
-                      ID: {c.id.slice(0, 4)}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs font-bold text-white group-hover:gap-2 transition-all">
-                      Buka Kelas <ArrowRight className="w-3 h-3" />
-                    </span>
+                  <div className="relative flex h-full flex-col">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-300/65">
+                        Kelas aktif
+                      </span>
+                      <span className="text-xs font-medium text-white/25">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                    </div>
+
+                    <h3 className="mt-5 line-clamp-2 text-xl font-semibold tracking-tight text-white transition-colors group-hover:text-cyan-100">
+                      {classItem.title}
+                    </h3>
+                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-400">
+                      {classItem.description ||
+                        "Materi pembelajaran dan pertemuan kelas tersedia di sini."}
+                    </p>
+
+                    <div className="mt-auto flex items-center justify-between gap-4 border-t border-white/[0.08] pt-5">
+                      <span className="text-xs text-white/35">
+                        Materi kelas
+                      </span>
+                      <span className="text-sm font-semibold text-white transition-colors group-hover:text-cyan-200">
+                        Buka kelas
+                      </span>
+                    </div>
                   </div>
-                </motion.div>
+                </motion.article>
               </Link>
             ))}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }
