@@ -179,7 +179,6 @@ export default function CheckoutModal({
           ) : (
             <div>
               <input
-                key={file?.name ?? "empty"}
                 id="proof-file"
                 type="file"
                 accept="image/*"
