@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { apiMyEnrollments, fetchCatalog } from "../../../lib/api";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { Catalog } from "@/types/catalog";
-import { BookOpen, MessageSquare, Home, LogOut, ChevronRight } from "lucide-react";
+import { BookOpen, MessageSquare, Home, LogOut, ChevronRight, ReceiptText } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function PesertaLayout({ children }: { children: React.ReactNode }) {
@@ -60,6 +60,11 @@ export default function PesertaLayout({ children }: { children: React.ReactNode 
                  <li>
                     <Link href="/peserta/feedback" className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive('/peserta/feedback') ? 'bg-cyan-500/10 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
                        <MessageSquare className="w-4 h-4" /> Feedback
+                    </Link>
+                 </li>
+                 <li>
+                    <Link href="/peserta/pesanan" className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive('/peserta/pesanan') ? 'bg-cyan-500/10 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
+                       <ReceiptText className="w-4 h-4" /> Riwayat Pesanan
                     </Link>
                  </li>
               </ul>

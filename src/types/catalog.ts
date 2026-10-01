@@ -100,6 +100,30 @@ export type ClassMaterial = {
 
 export type OrderStatus = "pending" | "approved" | "rejected" | "expired";
 
+export type ParticipantOrderItem = {
+  item_id?: string;
+  item_type?: string;
+  item_title?: string;
+  class_id?: string;
+  title?: string;
+  qty?: number;
+  price?: number;
+  meeting_count?: number | null;
+};
+
+export type ParticipantOrder = {
+  id: string;
+  user_id: string;
+  items: ParticipantOrderItem[];
+  total: number;
+  status: OrderStatus;
+  fulfillment_mode?: "legacy_manual" | "automatic";
+  proof_url?: string | null;
+  sender_name?: string | null;
+  note?: string | null;
+  created_at?: string | null;
+};
+
 export type OrderItem = {
   class_id: string;
   qty: number;

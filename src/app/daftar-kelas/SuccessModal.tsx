@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Modal from "@/components/modal/Modal";
 
 export default function SuccessModal({
@@ -15,8 +16,8 @@ export default function SuccessModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Pembayaran diterima"
-      variant="success"
+      title="Bukti pembayaran terkirim"
+      variant="info"
       size="sm"
       actions={[
         {
@@ -29,9 +30,15 @@ export default function SuccessModal({
     >
       <div className="space-y-5">
         <p className="text-sm leading-relaxed text-white/60">
-          Terima kasih sudah mendaftar. Admin kami sedang memverifikasi datamu.
-          Silakan tunggu update selanjutnya.
+          Terima kasih sudah mendaftar. Admin kami sedang memverifikasi bukti
+          transfermu. Kamu bisa melihat status pesanan dari halaman riwayat.
         </p>
+        <Link
+          href="/peserta/pesanan"
+          className="flex w-full items-center justify-center rounded-xl bg-cyan-200 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-100"
+        >
+          Lihat status pesanan
+        </Link>
         <a
           href={groupLink}
           target="_blank"

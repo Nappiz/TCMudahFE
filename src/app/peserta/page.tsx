@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { ReceiptText } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -139,13 +140,22 @@ export default function PesertaIndex() {
             </p>
           </div>
 
-          <div className="shrink-0 md:text-right">
-            <p className="text-3xl font-semibold tracking-tight text-white">
-              {myClasses.length}
-            </p>
-            <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/40">
-              kelas aktif
-            </p>
+          <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center md:justify-end">
+            <Link
+              href="/peserta/pesanan"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-3.5 py-2.5 text-sm font-medium text-slate-300 transition hover:border-cyan-200/25 hover:bg-white/[0.04] hover:text-white"
+            >
+              <ReceiptText className="h-4 w-4" />
+              Riwayat pesanan
+            </Link>
+            <div className="sm:text-right">
+              <p className="text-3xl font-semibold tracking-tight text-white">
+                {myClasses.length}
+              </p>
+              <p className="mt-1 text-xs uppercase tracking-[0.16em] text-white/40">
+                kelas aktif
+              </p>
+            </div>
           </div>
         </div>
       </header>
