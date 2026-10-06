@@ -2,9 +2,11 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowUpRight,
   BadgeCheck,
-  Bell,
   BookOpenText,
+  ChevronRight,
+  ClipboardCheck,
   FileBox,
   FileVideo,
   GraduationCap,
@@ -14,7 +16,6 @@ import {
   type LucideIcon,
   Menu,
   MessageSquare,
-  Search,
   Settings,
   Users,
   X,
@@ -215,6 +216,7 @@ function MobileSidebar({
               <button
                 type="button"
                 onClick={onClose}
+                aria-label="Tutup menu navigasi"
                 className="p-2 text-slate-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
@@ -319,47 +321,89 @@ function UserProfile({ me }: { me: User }) {
 
 function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
   const pathname = usePathname();
+  const { data: notifications, loading } = useNotifications();
   const title =
     MENU_ITEMS.find(
       (item): item is Extract<MenuItem, { href: string }> =>
-        "href" in item && item.href === pathname,
+        "href" in item &&
+        (item.href === pathname ||
+          (item.href !== "/cms" && pathname.startsWith(`${item.href}/`))),
     )?.label || "Overview";
+  const pendingOrders = notifications.new_orders;
+  const actionFocus =
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0E14]";
 
   return (
-    <header className="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-white/5 bg-[#0B0E14]/80 backdrop-blur sticky top-0 z-20">
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-white/[0.08] bg-[#0B0E14]/95 px-4 backdrop-blur lg:px-8">
+      <div className="flex min-w-0 items-center gap-3">
         <button
           type="button"
           onClick={onOpenMenu}
-          className="p-2 -ml-2 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white lg:hidden"
+          aria-label="Buka menu navigasi"
+          className={`-ml-2 shrink-0 rounded-lg p-2 text-slate-400 transition-colors hover:bg-white/5 hover:text-white lg:hidden ${actionFocus}`}
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
 
-        <h2 className="text-lg font-semibold text-white truncate">{title}</h2>
+        <nav
+          aria-label="Lokasi halaman"
+          className="flex min-w-0 items-center gap-2.5 text-sm"
+        >
+          <Link
+            href="/cms"
+            className={`hidden shrink-0 rounded text-slate-500 transition-colors hover:text-cyan-300 sm:inline ${actionFocus}`}
+          >
+            CMS
+          </Link>
+          <ChevronRight
+            className="hidden h-3.5 w-3.5 shrink-0 text-slate-600 sm:block"
+            aria-hidden="true"
+          />
+          <span
+            aria-current="page"
+            className="truncate font-medium text-slate-200"
+          >
+            {title}
+          </span>
+        </nav>
       </div>
 
-      <div className="flex items-center gap-3 sm:gap-4">
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-          <input
-            placeholder="Search..."
-            className="h-9 w-40 lg:w-64 rounded-full bg-white/5 border border-white/5 pl-9 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all"
-          />
-        </div>
-        <button
-          type="button"
-          className="relative p-2 text-slate-400 hover:text-white transition-colors"
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <Link
+          href="/cms/orders"
+          aria-label={
+            !loading && pendingOrders > 0
+              ? `Tinjau ${pendingOrders.toLocaleString("id-ID")} pesanan menunggu`
+              : "Lihat pesanan"
+          }
+          className={`flex min-h-9 items-center gap-2 rounded-lg px-2.5 text-xs font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-100 ${actionFocus}`}
         >
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 border border-[#0B0E14]"></span>
-        </button>
-        <div className="h-6 w-px bg-white/10 mx-1 hidden sm:block"></div>
+          <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
+          <span className="hidden sm:inline">
+            {!loading && pendingOrders > 0 ? "Review pesanan" : "Pesanan"}
+          </span>
+          {!loading && pendingOrders > 0 && (
+            <span
+              className="rounded-md bg-amber-400/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300 tabular-nums"
+              aria-hidden="true"
+            >
+              {pendingOrders > 99 ? "99+" : pendingOrders}
+            </span>
+          )}
+        </Link>
+        <div
+          className="hidden h-4 w-px bg-white/10 sm:block"
+          aria-hidden="true"
+        />
         <Link
           href="/"
-          className="text-xs font-medium text-slate-400 hover:text-cyan-400 transition-colors hidden sm:block"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Buka website di tab baru"
+          className={`flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.025] px-2.5 text-xs font-medium text-slate-300 transition-colors hover:border-cyan-400/30 hover:bg-cyan-400/5 hover:text-cyan-300 sm:px-3 ${actionFocus}`}
         >
-          View Site
+          <span className="hidden sm:inline">Buka website</span>
+          <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       </div>
     </header>
