@@ -5,7 +5,7 @@ import { Inter } from "next/font/google";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TC Mudah — Tutoring Informatika ITS",
+  title: "TC Mudah - Tutoring Informatika ITS",
   description:
     "Tutoring online untuk Mahasiswa Baru IF ITS. Materi terstruktur, mentor berpengalaman, dan komunitas suportif.",
   icons: { icon: "/favicon.ico" },
