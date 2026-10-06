@@ -1,7 +1,6 @@
 import type { Testimonial } from "@/types/catalog";
+import { API_BASE } from "../../lib/api";
 import TestimonialsClient from "./TestimonialsClient";
-
-const API_BASE = process.env.BACKEND_URL || "http://localhost:8000";
 
 export default async function Testimonials() {
   let items: Testimonial[] = [];

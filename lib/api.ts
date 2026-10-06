@@ -9,7 +9,7 @@ import type { User } from "@/types/user";
 
 export const API_BASE =
   typeof window === "undefined"
-    ? process.env.BACKEND_URL || "http://localhost:8000"
+    ? (process.env.BACKEND_URL || "http://localhost:8000").replace(/\/+$/, "")
     : "/api";
 
 /** Low-level JSON helper used by some auth calls */

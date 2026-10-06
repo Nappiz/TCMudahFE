@@ -1,3 +1,4 @@
+import { API_BASE } from "../../lib/api";
 import ProgramGridClient from "./ProgramGridClient";
 
 type Item = {
@@ -9,8 +10,6 @@ type Item = {
 };
 
 type CatalogResponse = { curriculum: Item[] };
-
-const API_BASE = process.env.BACKEND_URL || "http://localhost:8000";
 
 export default async function ProgramGrid() {
   let items: Item[] = [];

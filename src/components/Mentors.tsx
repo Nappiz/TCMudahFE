@@ -1,3 +1,4 @@
+import { API_BASE } from "../../lib/api";
 import MentorsClient from "./MentorsClient";
 
 type Mentor = {
@@ -8,8 +9,6 @@ type Mentor = {
 };
 
 type CatalogResponse = { mentors: Mentor[] };
-
-const API_BASE = process.env.BACKEND_URL || "http://localhost:8000";
 
 export default async function Mentors() {
   let data: Mentor[] | null = null;
